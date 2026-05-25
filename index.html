@@ -92,7 +92,6 @@
     <div class="experiment-container">
         <canvas id="gameCanvas" width="1200" height="600"></canvas>
 
-        <!-- [階段 1] 指導語 -->
         <div id="introLayer">
             <div class="intro-top">
                 <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">行為科學實驗：高頻行為追踪與擬真路徑優化版</h2>
@@ -112,12 +111,10 @@
             </div>
         </div>
 
-        <!-- [階段 2] 等待畫面 -->
         <div id="waitingLayer">
             <div class="waiting-text">請稍候，中央控制端正在同步環境變數...</div>
         </div>
 
-        <!-- [階段 5] 回合結束窗 -->
         <div id="gameOverOverlay">
             <div class="modal">
                 <h2 id="modalTitle">本回合結束</h2>
@@ -136,7 +133,6 @@
             </div>
         </div>
 
-        <!-- [階段 6] 問卷 -->
         <div id="surveyLayer">
             <div class="survey-title">後置實驗問卷調查</div>
             <form id="surveyForm">
@@ -147,7 +143,6 @@
             </form>
         </div>
 
-        <!-- [階段 7] 終點感謝畫面 -->
         <div id="thanksLayer">
             <h1 style="color: #2ecc71; font-size: 42px; margin-bottom: 15px;">🎉 實驗已圓滿結束</h1>
             <p style="font-size: 18px; color: #bdc3c7; max-width: 600px; line-height: 1.6;">
@@ -179,7 +174,7 @@
         
         let currentStage = 'INTRO'; 
         let currentRound = 1;
-        let participantId = "ANONYMOUS";//CmtA: Anonymous? Should be set to real id?
+        let participantId = "ANONYMOUS";
         
         let timeLeft = GAME_DURATION;
         let countdownSec = 5; 
@@ -187,20 +182,10 @@
         let startTime = null;
 
         let playerData = {
-            //PlayerID: ? //CmtA
-            //GameRound: ? //CmtA
             gameDuration: GAME_DURATION,
-            //playerX: ??? //CmtA: how to express player's position?
-            //playerY:??? //CmtA: how to express player's position?
-            //ActionType: "?" //CmtA: choose between "Pick" or "Drop"
-            //DropType: "?" //CmtA: choose among "Take", "Give", "stayHere", "stayThere"
             leftScore: 0,
             rightScore: 0,
-            totalScore: 0, //CmtA: check where is totalScore
-            //BallStatus: "?" //CmtA: choose between "purple" or "yellow"
-            //leftRight: 50 //CmtA: amount of balls left in right area
-            //leftLeft: 10 //CmtA: amount of balls left in left area
-            //robotSuggest: "?" //CmtA: "notYet", "Suggesting", ""
+            totalScore: 0, 
         };
         const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Space: false };
 
@@ -226,20 +211,19 @@
         let currentPickupSide = null; 
 
         // =========================================================================
-        // 🖼️ 日後更換自製圖檔的預留區 //CmtA: added in 20260521 (from index.html)
+        // 🖼️ 日後更換自製圖檔的預留區
         // =========================================================================
-        const useImages = false; // 💡 未來如果你畫好圖了，把這裡改成 true，並把圖檔跟 html 放一起
-        const catImg = new Image(); catImg.src = "cat.png";     // 你的貓咪圖檔名
-        const ballImg = new Image(); //ballImg.src = "ball.png";   // 你的球體圖檔名
-        const bgImg = new Image(); bgImg.src = "background.jpg"; // 你的背景圖檔名
+        const useImages = false; 
+        const catImg = new Image(); catImg.src = "cat.png";     
+        const bgImg = new Image(); bgImg.src = "background.jpg"; 
         //==========================================================================
 
         // --- 預載入球體圖片 ---
         const imgPurple = new Image();
-        imgPurple.src = "raw_ball.png";  // 👈 請換成你的紫色生球圖檔名稱或路徑
+        imgPurple.src = "raw_ball.png";  
 
         const imgYellow = new Image();
-        imgYellow.src = "cooked_ball.png"; // 👈 請換成你的黃色熟球圖檔名稱或路徑
+        imgYellow.src = "cooked_ball.png"; 
 
         // --- 物件類別定義 ---
         class Cat {
@@ -255,10 +239,8 @@
             draw() {
                 ctx.save();
                 if (useImages) {
-                    // 日後更換自製圖檔的繪製邏輯
                     ctx.drawImage(catImg, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
                 } else {
-                    // 目前的幾何暫代圖案
                     ctx.beginPath(); ctx.moveTo(this.x - 18, this.y - 10); ctx.lineTo(this.x - 18, this.y - 25); ctx.lineTo(this.x - 5, this.y - 15); ctx.fillStyle = this.color; ctx.fill();
                     ctx.beginPath(); ctx.moveTo(this.x + 18, this.y - 10); ctx.lineTo(this.x + 18, this.y - 25); ctx.lineTo(this.x + 5, this.y - 15); ctx.fillStyle = this.color; ctx.fill();
                     ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
@@ -269,144 +251,220 @@
             }
         }
 
-        class AutoBot {
-            constructor(x, y, id, isSmooth) {
-                this.x = x; this.y = y; this.id = id; this.radius = 14; 
-                this.color = isSmooth ? "#16a085" : "#1abc9c"; 
-                this.isSmooth = isSmooth; 
-                this.holdingBall = null; 
-                this.state = "SEARCH_PURPLE"; 
-                
-                this.delayTimer = 0;
-                this.idleTargetX = x; this.idleTargetY = y;
-                this.idleActionTimer = 0; this.idleSubState = "STOP";
-                this.escapeTargetX = x; this.escapeTargetY = y;
+        // ========================================================
+        // 【AI Player 1：得分手】 行為邏輯完全參考 RightBlackCatBot
+        // ========================================================
+        class LeftScoreBot {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = 14; this.color = "#16a085"; 
+                this.holdingBall = null; this.state = "SEARCH_YELLOW";
+
+                // 防卡死監控變數 (5秒不動檢測)
+                // this.lastRecordedX = x; this.lastRecordedY = y;
+                // this.immobileFrames = 0; this.antiStuckActive = false;
+                // this.antiStuckTargetX = x; this.antiStuckTargetY = y;
             }
 
             update() {
                 if (currentStage !== 'GAMING') return;
 
+                // --- 防卡死檢測 ---
+                // let distFromLastRecord = Math.hypot(this.x - this.lastRecordedX, this.y - this.lastRecordedY);
+                // if (distFromLastRecord < 0.5) { this.immobileFrames++; } else { this.immobileFrames = 0; }
+                // this.lastRecordedX = this.x; this.lastRecordedY = this.y;
+
+                // if (this.immobileFrames >= 300 && !this.antiStuckActive) {
+                //     this.antiStuckActive = true; this.immobileFrames = 0;
+                //     let randomAngle = Math.random() * Math.PI * 2;
+                //     this.antiStuckTargetX = this.x + Math.cos(randomAngle) * 110;
+                //     this.antiStuckTargetY = this.y + Math.sin(randomAngle) * 110;
+                // }
+
+                // if (this.antiStuckActive) {
+                //     let angle = Math.atan2(this.antiStuckTargetY - this.y, this.antiStuckTargetX - this.x);
+                //     this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
+                //     if (Math.hypot(this.x - this.antiStuckTargetX, this.y - this.antiStuckTargetY) < 15) { this.antiStuckActive = false; }
+                //     if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
+                //     return;
+                // }
+
+                if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
+
+                // --- 核心行為狀態機（比照 RightBlackCatBot 設計） ---
+                if (this.state === "SEARCH_YELLOW") {
+                    if (this.holdingBall) { this.state = "GO_TO_ZONE"; return; }
+                    
+                    // 尋找左半邊掉在地面上的黃色熟球
+                    let targetYellow = balls.find(b => !b.isHeld && b.x < midX && b.status === "yellow");
+                    if (targetYellow) {
+                        let angle = Math.atan2(targetYellow.y - this.y, targetYellow.x - this.x);
+                        this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
+                        if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
+                            if (!targetYellow.isHeld) {
+                                this.holdingBall = targetYellow; targetYellow.isHeld = true;
+                                this.state = "GO_TO_ZONE";
+                            }
+                        }
+                    } else {
+                        // 沒事做時在左區中央安全的空地待命
+                        let rx = 220; let ry = 350; 
+                        if (Math.hypot(this.x - rx, this.y - ry) > 10) {
+                            let angle = Math.atan2(ry - this.y, rx - this.x);
+                            this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
+                        }
+                    }
+                }
+                else if (this.state === "GO_TO_ZONE") {
+                    if (!this.holdingBall) { this.state = "SEARCH_YELLOW"; return; }
+                    let tx = leftZone.x + leftZone.width / 2; let ty = leftZone.y + leftZone.height / 2;
+                    let angle = Math.atan2(ty - this.y, tx - this.x);
+                    this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
+                    
+                    if (Math.hypot(this.x - tx, this.y - ty) < 20) {
+                        let idx = balls.indexOf(this.holdingBall); if (idx > -1) balls.splice(idx, 1);
+                        playerData.leftScore++; 
+                        this.holdingBall = null; this.state = "SEARCH_YELLOW";
+                    }
+                }
+
+                // 邊界防禦鎖
+                if (this.x < this.radius) this.x = this.radius; if (this.x > midX - this.radius) this.x = midX - this.radius;
+                if (this.y < topSectionHeight + this.radius) this.y = topSectionHeight + this.radius; if (this.y > canvas.height - this.radius) this.y = canvas.height - this.radius;
+            }
+
+            draw() {
+                ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
+                ctx.fillStyle = "#ffffff"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText("AI 1(得分)", this.x, this.y + 3); ctx.restore();
+            }
+        }
+
+        // ========================================================
+        // 【AI Player 2：生產線搬運手】 專注隨機大十字與送烤箱（修正版）
+        // ========================================================
+        class LeftCarrierBot {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = 14; this.color = "#1abc9c"; 
+                this.holdingBall = null; this.state = "SEARCH_PURPLE"; 
+                
+                this.delayTimer = 0;
+                this.idleTargetX = x; this.idleTargetY = y;
+                this.idleActionTimer = 0; this.idleSubState = "STOP";
+                this.escapeTargetX = x; this.escapeTargetY = y;
+
+                // 隨機十字移動控制記憶體
+                this.lastAngleSector = null; 
+                this.ai2_strideRemaining = 0; 
+                this.ai2_currentAngle = 0;     
+
+                // 防卡死監控變數
+                this.lastRecordedX = x; this.lastRecordedY = y;
+                this.immobileFrames = 0; this.antiStuckActive = false;
+                this.antiStuckTargetX = x; this.antiStuckTargetY = y;
+            }
+
+            update() {
+                if (currentStage !== 'GAMING') return;
+
+                // --- 防卡死檢測 ---
+                let distFromLastRecord = Math.hypot(this.x - this.lastRecordedX, this.y - this.lastRecordedY);
+                if (distFromLastRecord < 0.5) { this.immobileFrames++; } else { this.immobileFrames = 0; }
+                this.lastRecordedX = this.x; this.lastRecordedY = this.y;
+
+                if (this.immobileFrames >= 300 && !this.antiStuckActive) {
+                    this.antiStuckActive = true; this.immobileFrames = 0;
+                    let randomAngle = Math.random() * Math.PI * 2;
+                    this.antiStuckTargetX = this.x + Math.cos(randomAngle) * 110;
+                    this.antiStuckTargetY = this.y + Math.sin(randomAngle) * 110;
+                }
+
+                if (this.antiStuckActive) {
+                    this.moveToTarget(this.antiStuckTargetX, this.antiStuckTargetY);
+                    if (Math.hypot(this.x - this.antiStuckTargetX, this.y - this.antiStuckTargetY) < 15) { this.antiStuckActive = false; this.ai2_strideRemaining = 0; }
+                    if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
+                    return;
+                }
+
                 if (this.delayTimer > 0) { this.delayTimer--; return; }
                 if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
 
-                let leftHasPurpleOnGround = balls.some(b => !b.isHeld && b.x < midX && b.status === "purple");
+                // 💡 修正判定：地上的紫色球除了沒被拿、在左半邊、是紫色之外，還必須「不在任何烤箱的槽(slots)中」
+                let leftHasPurpleOnGround = balls.some(b => 
+                    !b.isHeld && 
+                    b.x < midX && 
+                    b.status === "purple" &&
+                    !ovens.some(o => o.slots.includes(b)) // ✨ 確保球不在任何烤箱裡
+                );
 
+                // --- 核心行為狀態機 ---
                 switch(this.state) {
                     case "SEARCH_PURPLE":
                         if (this.holdingBall) { this.state = "GO_TO_OVEN"; break; }
                         
-                        let groundPurple = balls.find(b => !b.isHeld && b.x < midX && b.status === "purple");
+                        // 💡 ✨【關鍵修正點】尋找目標時，排除已經進了烤箱槽的球
+                        let groundPurple = balls.find(b => 
+                            !b.isHeld && 
+                            b.x < midX && 
+                            b.status === "purple" &&
+                            !ovens.some(o => o.slots.includes(b)) // ✨ 排除烤箱內的球
+                        );
+
                         if (groundPurple) {
                             this.moveToTarget(groundPurple.x, groundPurple.y);
                             if (Math.hypot(this.x - groundPurple.x, this.y - groundPurple.y) < REACH_DISTANCE) {
                                 if (!groundPurple.isHeld) {
-                                    this.simulateHumanDelay(15, 35);
+                                    this.delayTimer = Math.floor(Math.random() * 10) + 10; 
                                     this.holdingBall = groundPurple; groundPurple.isHeld = true;
+                                    this.ai2_strideRemaining = 0; 
                                     this.state = "GO_TO_OVEN";
                                 }
                             }
-                        } else {
-                            this.state = "SEARCH_YELLOW";
-                        }
+                        } else { this.state = "IDLE_ROAM"; }
                         break;
 
                     case "GO_TO_OVEN":
                         if (!this.holdingBall) { this.state = "SEARCH_PURPLE"; break; }
                         let targetOven = ovens.find(o => o.side === "left" && o.slots.length < 3);
                         if (targetOven) {
-                            let ox = targetOven.x + targetOven.width / 2;
-                            let oy = targetOven.y + targetOven.height / 2;
+                            let ox = targetOven.x + targetOven.width / 2; let oy = targetOven.y + targetOven.height / 2;
                             this.moveToTarget(ox, oy);
-                            
                             if (Math.hypot(this.x - ox, this.y - oy) < 25) {
-                                this.simulateHumanDelay(15, 30);
+                                this.delayTimer = Math.floor(Math.random() * 10) + 10;
                                 this.holdingBall.isHeld = false;
                                 this.holdingBall.x = targetOven.x + 15 + (targetOven.slots.length * 18);
                                 this.holdingBall.y = targetOven.y + targetOven.height / 2;
+                                
+                                this.holdingBall.cookProgress = 0; 
                                 targetOven.slots.push(this.holdingBall);
-                                
-                                let bObj = this.holdingBall;
-                                setTimeout(() => { bObj.status = "yellow"; }, 3000); 
-                                
                                 this.holdingBall = null;
-                                this.escapeTargetX = this.x;
-                                this.escapeTargetY = oy + 80; 
+                                
+                                this.escapeTargetX = this.x; this.escapeTargetY = oy + 90; 
+                                this.ai2_strideRemaining = 0; 
                                 this.state = "LEAVE_OVEN";
                             }
-                        } else {
-                            this.x += (Math.random() - 0.5) * 2; this.y += (Math.random() - 0.5) * 2;
-                        }
+                        } else { this.moveToTarget(this.x, canvas.height - 50); }
                         break;
 
                     case "LEAVE_OVEN":
                         this.moveToTarget(this.escapeTargetX, this.escapeTargetY);
-                        if (Math.hypot(this.x - this.escapeTargetX, this.y - this.escapeTargetY) < 20) {
-                            this.state = "SEARCH_YELLOW";
-                        }
-                        break;
-
-                    case "SEARCH_YELLOW":
-                        if (this.holdingBall) { this.state = "GO_TO_ZONE"; break; }
-                        
-                        let targetYellow = balls.find(b => !b.isHeld && b.x < midX && b.status === "yellow");
-                        if (targetYellow) {
-                            this.moveToTarget(targetYellow.x, targetYellow.y);
-                            if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
-                                if (!targetYellow.isHeld) {
-                                    this.simulateHumanDelay(10, 25);
-                                    ovens.forEach(o => { let idx = o.slots.indexOf(targetYellow); if(idx > -1) o.slots.splice(idx,1); });
-                                    this.holdingBall = targetYellow; targetYellow.isHeld = true;
-                                    this.state = "GO_TO_ZONE";
-                                }
-                            }
-                        } else {
-                            if (leftHasPurpleOnGround) {
-                                this.state = "SEARCH_PURPLE";
-                            } else {
-                                this.state = "IDLE_ROAM";
-                            }
-                        }
-                        break;
-
-                    case "GO_TO_ZONE":
-                        if (!this.holdingBall) { this.state = "SEARCH_PURPLE"; break; }
-                        let tx = leftZone.x + leftZone.width / 2; 
-                        let ty = leftZone.y + leftZone.height / 2;
-                        this.moveToTarget(tx, ty);
-                        
-                        if (Math.hypot(this.x - tx, this.y - ty) < 20) {
-                            this.simulateHumanDelay(15, 30);
-                            let idx = balls.indexOf(this.holdingBall); if (idx > -1) balls.splice(idx, 1);
-                            playerData.leftScore++;
-                            this.holdingBall = null;
-                            
-                            this.escapeTargetX = tx + 60;
-                            this.escapeTargetY = ty + 60;
-                            this.state = "LEAVE_OVEN"; 
+                        if (Math.hypot(this.x - this.escapeTargetX, this.y - this.escapeTargetY) < 25) {
+                            this.state = "SEARCH_PURPLE"; 
                         }
                         break;
 
                     case "IDLE_ROAM":
-                        if (leftHasPurpleOnGround || balls.some(b => !b.isHeld && b.x < midX && b.status === "yellow")) {
-                            this.state = "SEARCH_PURPLE"; break;
-                        }
-                        
+                        if (leftHasPurpleOnGround) { this.state = "SEARCH_PURPLE"; break; }
                         this.idleActionTimer--;
                         if (this.idleActionTimer <= 0) {
-                            if (Math.random() < 0.5) {
-                                this.idleSubState = "STOP";
-                                this.idleActionTimer = Math.floor(Math.random() * 60) + 40;
-                            } else {
+                            if (Math.random() < 0.3) { this.idleSubState = "STOP"; this.idleActionTimer = 30; }
+                            else {
                                 this.idleSubState = "WALK";
                                 this.idleTargetX = Math.random() * (midX - 100) + 50;
-                                this.idleTargetY = Math.random() * (canvas.height - (topSectionHeight + 240)) + (topSectionHeight + 240);
-                                this.idleActionTimer = Math.floor(Math.random() * 120) + 60;
+                                this.idleTargetY = Math.random() * (canvas.height - (topSectionHeight + 200)) + (topSectionHeight + 200);
+                                this.idleActionTimer = 90;
                             }
                         }
-
-                        if (this.idleSubState === "WALK") {
-                            this.moveToTarget(this.idleTargetX, this.idleTargetY);
-                        }
+                        if (this.idleSubState === "WALK") { this.moveToTarget(this.idleTargetX, this.idleTargetY); }
                         break;
                 }
 
@@ -415,20 +473,47 @@
             }
 
             moveToTarget(tx, ty) {
-                let angle = Math.atan2(ty - this.y, tx - this.x);
-                if (!this.isSmooth) angle += (Math.random() - 0.5) * 0.4;
-                let speed = this.isSmooth ? BOT_SPEED : BOT_SPEED * 0.85;
-                this.x += Math.cos(angle) * speed; this.y += Math.sin(angle) * speed;
-            }
+                let dx = tx - this.x; let dy = ty - this.y;
+                let finalAngle = Math.atan2(dy, dx);
+                let speed = BOT_SPEED * 0.9; 
 
-            simulateHumanDelay(minFrames, maxFrames) {
-                if (!this.isSmooth) this.delayTimer = Math.floor(Math.random() * (maxFrames - minFrames)) + minFrames;
+                if (this.ai2_strideRemaining <= 0) {
+                    this.ai2_strideRemaining = Math.floor(Math.random() * (150 - 50 + 1)) + 50;
+                    let roll = Math.random();
+                    let chosenAngle = finalAngle;
+
+                    if (roll < 0.80) { 
+                        if (Math.abs(dx) > Math.abs(dy)) { chosenAngle = dx > 0 ? 0 : Math.PI; }
+                        else { chosenAngle = dy > 0 ? Math.PI / 2 : -Math.PI / 2; }
+                    } else { chosenAngle = finalAngle; }
+
+                    this.ai2_currentAngle = chosenAngle;
+
+                    let currentSector = "STILL";
+                    if (Math.abs(Math.cos(chosenAngle)) > 0.707) { currentSector = Math.cos(chosenAngle) > 0 ? "RIGHT" : "LEFT"; }
+                    else { currentSector = Math.sin(chosenAngle) > 0 ? "DOWN" : "UP"; }
+
+                    if (this.lastAngleSector !== null && this.lastAngleSector !== currentSector) {
+                        if (Math.random() < 0.50) { 
+                            this.delayTimer = Math.floor(Math.random() * 10) + 20;
+                            this.lastAngleSector = currentSector;
+                            return; 
+                        }
+                    }
+                    this.lastAngleSector = currentSector;
+                }
+
+                finalAngle = this.ai2_currentAngle;
+                this.ai2_strideRemaining -= speed; 
+
+                this.x += Math.cos(finalAngle) * speed; 
+                this.y += Math.sin(finalAngle) * speed;
             }
 
             draw() {
                 ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
                 ctx.fillStyle = "#ffffff"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
-                ctx.fillText(this.isSmooth ? "AI 1" : "AI 2", this.x, this.y + 3); ctx.restore();
+                ctx.fillText("AI 2(搬運)", this.x, this.y + 3); ctx.restore();
             }
         }
 
@@ -450,7 +535,6 @@
                         this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
                         if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
                             if (!targetYellow.isHeld) {
-                                ovens.forEach(o => { let idx = o.slots.indexOf(targetYellow); if(idx > -1) o.slots.splice(idx,1); });
                                 this.holdingBall = targetYellow; targetYellow.isHeld = true;
                                 this.state = "GO_TO_ZONE";
                             }
@@ -487,24 +571,12 @@
             }
         }
 
-        // class Ball {
-        //     constructor(id, x, y, startSide) { 
-        //         this.id = id; this.x = x; this.y = y; this.radius = 10; 
-        //         this.status = "purple"; this.isHeld = false; this.originSide = startSide; 
-        //     }
-        //     draw() {
-        //         ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        //         ctx.fillStyle = (this.status === "purple") ? "#9b59b6" : "#f1c40f"; ctx.fill();
-        //         ctx.lineWidth = 1; ctx.strokeStyle = "#ffffff"; ctx.stroke(); ctx.restore();
-        //     }
-        // }
-
         class Ball {
             constructor(id, x, y, startSide) { 
                 this.id = id; 
                 this.x = x; 
                 this.y = y; 
-                this.radius = 12; // 💡 因為改成圖片，稍微放大半徑（原本10）視覺效果會更好
+                this.radius = 12; 
                 this.status = "purple"; 
                 this.isHeld = false; 
                 this.originSide = startSide; 
@@ -513,20 +585,14 @@
             draw() {
                 ctx.save();
                 
-                // 1. 根據球的狀態（生/熟）決定使用哪張圖片
                 let currentImg = (this.status === "purple") ? imgPurple : imgYellow;
 
-                // 2. 檢查圖片是否已經載入成功
                 if (currentImg.complete && currentImg.naturalWidth !== 0) {
-                    // 計算圖片的左上角座標，讓圖片中心點完美對齊球的 (x, y) 座標
                     let size = this.radius * 2;
                     let drawX = this.x - this.radius;
                     let drawY = this.y - this.radius;
-                    
-                    // 繪製圖片 (圖片物件, 左上X, 左上Y, 寬度, 高度)
                     ctx.drawImage(currentImg, drawX, drawY, size, size);
                 } else {
-                    // 備份方案：如果圖片還沒載入好（或圖檔壞了），自動畫回原本的圓形，確保遊戲不崩潰
                     ctx.beginPath();
                     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                     ctx.fillStyle = (this.status === "purple") ? "#9b59b6" : "#f1c40f";
@@ -551,8 +617,7 @@
             let minY = topSectionHeight + 240; 
             let maxY = canvas.height - 40;
 
-            //CmtA: Here to set balls' positions
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 10; i++) {
                 let rx = Math.random() * (midX - 100) + 50;
                 let ry = Math.random() * (maxY - minY) + minY;
                 balls.push(new Ball(idCounter++, rx, ry, 'left'));
@@ -564,12 +629,38 @@
                 balls.push(new Ball(idCounter++, rx, ry, 'right'));
             }
 
-            bots = [ new AutoBot(150, 400, 1, true), new AutoBot(250, 450, 2, false) ];
+            // 👇 修正：分別使用全新拆分出的類別來初始化 AI 1 與 AI 2
+            bots = [ new LeftScoreBot(150, 400), new LeftCarrierBot(250, 450) ];
             blackCatBot = new RightBlackCatBot(950, 420);
         }
 
         function getLeftRemainingCount() { return balls.filter(b => b.x < midX).length; }
         function getRightRemainingCount() { return balls.filter(b => b.x >= midX).length; }
+
+        // ==========================================
+        // 🔮 【核心統一區域】全域烤箱狀態輪詢更新 
+        // ==========================================
+        function updateOvens() {
+            ovens.forEach(o => {
+                // 不分 side === "right"，左右烤箱邏輯在此完全同步
+                o.slots.forEach(b => {
+                    if (b.status === "purple") {
+                        if (b.cookProgress === undefined) b.cookProgress = 0;
+                        
+                        b.cookProgress += (100 / (3 * 60)); // 3秒煮熟 (以 60 FPS 換算)
+                        
+                        if (b.cookProgress >= 100) {
+                            b.status = "yellow";
+                            b.y = o.y + o.height + 20; // 烤好後自動往下彈出到烤箱下方
+                            
+                            // 自烤箱插槽列表中移除，吐回大地圖原生 balls 列表中
+                            let idx = o.slots.indexOf(b);
+                            if (idx > -1) o.slots.splice(idx, 1);
+                        }
+                    }
+                });
+            });
+        }
 
         function sendActionPayloadToGoogleForm(actionType) {
             let elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -584,7 +675,6 @@
 
             let formData = new FormData();
             formData.append(ENTRY_PARTICIPANT_ID, participantId);
-            //formData.append(ENTRY_GAMEROUND, GameRound);//CmtA: check the variable name for game round
             formData.append(ENTRY_ACTION_DATA, payload);
             navigator.sendBeacon(GOOGLE_FORM_URL, formData);
         }
@@ -602,7 +692,6 @@
                     }
                 });
                 if (closestBall) {
-                    ovens.forEach(o => { let idx = o.slots.indexOf(closestBall); if(idx > -1) o.slots.splice(idx, 1); });
                     cat.holdingBall = closestBall; closestBall.isHeld = true;
                     currentPickupSide = currentSide; 
                     
@@ -640,16 +729,9 @@
                     
                     b.x = insideOven.x + 12 + (insideOven.slots.length * 18);
                     b.y = insideOven.y + insideOven.height / 2;
+                    b.cookProgress = 0; // 玩家手動放入右側烤箱時同步重置進度
                     insideOven.slots.push(b);
                     
-                    let targetBall = b;
-                    setTimeout(() => {
-                        if (balls.includes(targetBall)) { 
-                            targetBall.status = "yellow"; 
-                            if (!targetBall.isHeld) targetBall.y = insideOven.y + insideOven.height + 15;
-                        }
-                    }, 3000);
-
                     sendActionPayloadToGoogleForm(`${finalActionType}_PutToOven`);
                     return;
                 }
@@ -688,7 +770,7 @@
             ctx.save(); ctx.translate(canvas.width / 2, topSectionHeight / 2 - 20 + bounceY);
             ctx.fillStyle = "#95a5a6"; ctx.fillRect(-25, -20, 50, 40);
             ctx.fillStyle = (Math.floor(timestamp / 400) % 2 === 0) ? "#00ffcc" : "#00aa88";
-            ctx.beginPath(); ctx.arc(-10, -3, 5, 0, Math.PI*2); ctx.arc(10, -3, 5, 0, Math.PI*2); ctx.fill(); // 已修復：之前漏掉 ctx.fill() 導致空白
+            ctx.beginPath(); ctx.arc(-10, -3, 5, 0, Math.PI*2); ctx.arc(10, -3, 5, 0, Math.PI*2); ctx.fill(); 
             ctx.restore();
 
             const barWidth = 300; const barHeight = 12;
@@ -709,8 +791,8 @@
             ctx.fillStyle = "#eaf2f8"; ctx.fillRect(0, topSectionHeight, midX, gameSectionHeight); 
             ctx.fillStyle = "#fef9e7"; ctx.fillRect(midX, topSectionHeight, midX, gameSectionHeight); 
 
-            ctx.strokeStyle = "#d5dbdb"; ctx.lineWidth = 1.5; ctx.setLineDash([6, 6]);
-            ctx.beginPath(); ctx.moveTo(midX, topSectionHeight); ctx.lineTo(midX, canvas.height); ctx.stroke(); ctx.setLineDash([]);
+            // ctx.strokeStyle = "#d5dbdb"; ctx.lineWidth = 1.5; ctx.setLineDash([6, 6]);
+            // ctx.beginPath(); ctx.moveTo(midX, topSectionHeight); ctx.lineTo(midX, canvas.height); ctx.stroke(); ctx.setLineDash([]);
 
             ctx.fillStyle = leftZone.color; ctx.fillRect(leftZone.x, leftZone.y, leftZone.width, leftZone.height);
             ctx.fillStyle = rightZone.color; ctx.fillRect(rightZone.x, rightZone.y, rightZone.width, rightZone.height);
@@ -753,6 +835,7 @@
         function updateGame() {
             if (currentStage === 'GAMING') {
                 cat.update();
+                updateOvens(); // 每幀動態更新全域烤箱計時狀態
             }
         }
 
