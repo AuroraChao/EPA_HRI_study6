@@ -230,10 +230,16 @@
         // =========================================================================
         const useImages = false; // 💡 未來如果你畫好圖了，把這裡改成 true，並把圖檔跟 html 放一起
         const catImg = new Image(); catImg.src = "cat.png";     // 你的貓咪圖檔名
-        const ballImg = new Image(); ballImg.src = "ball.png";   // 你的球體圖檔名
+        const ballImg = new Image(); //ballImg.src = "ball.png";   // 你的球體圖檔名
         const bgImg = new Image(); bgImg.src = "background.jpg"; // 你的背景圖檔名
         //==========================================================================
 
+        // --- 預載入球體圖片 ---
+        const imgPurple = new Image();
+        imgPurple.src = "raw_ball.png";  // 👈 請換成你的紫色生球圖檔名稱或路徑
+
+        const imgYellow = new Image();
+        imgYellow.src = "cooked_ball.png"; // 👈 請換成你的黃色熟球圖檔名稱或路徑
 
         // --- 物件類別定義 ---
         class Cat {
@@ -481,15 +487,56 @@
             }
         }
 
+        // class Ball {
+        //     constructor(id, x, y, startSide) { 
+        //         this.id = id; this.x = x; this.y = y; this.radius = 10; 
+        //         this.status = "purple"; this.isHeld = false; this.originSide = startSide; 
+        //     }
+        //     draw() {
+        //         ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        //         ctx.fillStyle = (this.status === "purple") ? "#9b59b6" : "#f1c40f"; ctx.fill();
+        //         ctx.lineWidth = 1; ctx.strokeStyle = "#ffffff"; ctx.stroke(); ctx.restore();
+        //     }
+        // }
+
         class Ball {
             constructor(id, x, y, startSide) { 
-                this.id = id; this.x = x; this.y = y; this.radius = 10; 
-                this.status = "purple"; this.isHeld = false; this.originSide = startSide; 
+                this.id = id; 
+                this.x = x; 
+                this.y = y; 
+                this.radius = 12; // 💡 因為改成圖片，稍微放大半徑（原本10）視覺效果會更好
+                this.status = "purple"; 
+                this.isHeld = false; 
+                this.originSide = startSide; 
             }
+            
             draw() {
-                ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = (this.status === "purple") ? "#9b59b6" : "#f1c40f"; ctx.fill();
-                ctx.lineWidth = 1; ctx.strokeStyle = "#ffffff"; ctx.stroke(); ctx.restore();
+                ctx.save();
+                
+                // 1. 根據球的狀態（生/熟）決定使用哪張圖片
+                let currentImg = (this.status === "purple") ? imgPurple : imgYellow;
+
+                // 2. 檢查圖片是否已經載入成功
+                if (currentImg.complete && currentImg.naturalWidth !== 0) {
+                    // 計算圖片的左上角座標，讓圖片中心點完美對齊球的 (x, y) 座標
+                    let size = this.radius * 2;
+                    let drawX = this.x - this.radius;
+                    let drawY = this.y - this.radius;
+                    
+                    // 繪製圖片 (圖片物件, 左上X, 左上Y, 寬度, 高度)
+                    ctx.drawImage(currentImg, drawX, drawY, size, size);
+                } else {
+                    // 備份方案：如果圖片還沒載入好（或圖檔壞了），自動畫回原本的圓形，確保遊戲不崩潰
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = (this.status === "purple") ? "#9b59b6" : "#f1c40f";
+                    ctx.fill();
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
             }
         }
 
