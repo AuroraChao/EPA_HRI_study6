@@ -6,38 +6,58 @@
     <title>行為科學實驗系統 (完全修復版)</title>
     <style>
         body {
-            margin: 0; padding: 0; background-color: #2c3e50;
+            margin: 0; padding: 0; background-color: #f2c879;
             font-family: sans-serif; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; min-height: 100vh; color: #ecf0f1;
+            align-items: center; justify-content: center; min-height: 100vh; color: #4f3422;
             overflow-x: hidden;
         }
+        #gameCanvas { cursor: none; width: 100%; height: 100%; display: block; }
         
         .experiment-container {
             position: relative;
             width: 1200px;
             height: 600px;
-            background-color: #ffffff;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            background-color: #fff4d8;
+            border: 8px solid #8f5d3b;
+            border-radius: 12px;
+            box-shadow: 0 18px 42px rgba(93, 54, 30, 0.42);
             display: block;
+            overflow: hidden;
         }
 
         #introLayer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #34495e; display: flex; flex-direction: column; z-index: 100;
+            background-color: #34495e; color: #f8fafc; display: flex; flex-direction: column; z-index: 100;
         }
         .intro-top {
             height: 75%; padding: 20px 40px; box-sizing: border-box;
             overflow-y: auto; line-height: 1.6; font-size: 15px; border-bottom: 2px solid #2c3e50;
         }
+        .intro-instructions p {
+            margin: 0 0 12px; font-size: 16px; line-height: 1.65; color: #f8fafc;
+        }
+        .intro-robot-role {
+            display: flex; align-items: center; gap: 18px; margin-bottom: 12px;
+        }
+        .intro-robot-role p { flex: 1; margin: 0; }
+        .intro-robot-role img {
+            width: 88px; height: 88px; flex: 0 0 88px; object-fit: cover;
+            border-radius: 50%; border: 3px solid #f8c471;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+        }
+        .intro-operation {
+            margin-top: 16px; padding: 14px 18px;
+            border-left: 4px solid #f8c471; background: rgba(255, 255, 255, 0.08);
+        }
+        .intro-operation p:last-child { margin-bottom: 0; }
         .intro-bottom {
             height: 25%; background-color: #2c3e50; display: flex;
             flex-direction: column; align-items: center; justify-content: center; gap: 8px;
         }
-        .input-group { display: flex; align-items: center; gap: 12px; font-size: 16px; }
+        .input-group { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; width: 100%; }
         .input-group input {
             padding: 6px 10px; font-size: 15px; border-radius: 6px; border: none; width: 200px; text-align: center;
         }
-        
         #waitingLayer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #7f8c8d; display: none; flex-direction: column;
@@ -47,14 +67,22 @@
 
         #gameOverOverlay {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); flex-direction: column; align-items: center; justify-content: center; z-index: 50;
+            background: rgba(0, 0, 0, 0.85); flex-direction: column; align-items: center; justify-content: center;
+            z-index: 50; text-align: center;
         }
-        .modal { background: #34495e; padding: 25px 35px; border-radius: 12px; text-align: center; max-width: 400px; width: 80%; }
-        .modal h2 { color: #e74c3c; margin-top: 0; font-size: 24px; }
-        .stats-container { margin: 15px 0; text-align: left; background: #2c3e50; padding: 12px; border-radius: 8px; }
-        .stats-item { margin: 8px 0; font-size: 15px; display: flex; justify-content: space-between; }
-        .stats-val { font-weight: bold; color: #f1c40f; }
-        #statusMessage { margin-top: 10px; font-weight: bold; color: #3498db; font-size: 14px; }
+        .modal {
+            background: #34495e; padding: 32px 40px; border-radius: 8px; text-align: center;
+            max-width: 470px; width: 82%; border: 2px solid #f8c471;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); color: #ffffff;
+        }
+        .modal h2 { color: #f8c471; margin: 0 0 14px; font-size: 36px; }
+        #modalSub { color: #ffffff; font-size: 18px; line-height: 1.55; }
+        .stats-container {
+            margin: 18px 0; text-align: left; background: #25384b; padding: 16px;
+            border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .stats-item { margin: 10px 0; font-size: 17px; color: #f8fafc; display: flex; justify-content: space-between; }
+        .stats-val { font-weight: bold; color: #ffe08a; }
 
         #surveyLayer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -71,7 +99,100 @@
         #thanksLayer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #273746; display: none; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 400; text-align: center; padding: 40px;
+            align-items: center; justify-content: center; z-index: 400; text-align: center;
+            padding: 40px; box-sizing: border-box;
+        }
+
+        #robotDialogLayer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; z-index: 260; overflow: hidden;
+            background: rgba(12, 18, 28, 0.42);
+        }
+        .gal-character {
+            position: absolute; left: 50%; bottom: 172px; width: 240px; height: 300px;
+            transform: translateX(-50%);
+            border-radius: 8px; overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .gal-character img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .gal-dialog-box {
+            position: absolute; left: 46px; right: 46px; bottom: 34px;
+            min-height: 150px; box-sizing: border-box;
+            padding: 28px 34px 24px;
+            background: rgba(16, 24, 39, 0.94);
+            border: 2px solid rgba(248, 196, 113, 0.86);
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.46);
+        }
+        .gal-nameplate {
+            position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+            padding: 8px 20px; background: #f8c471; color: #18202b;
+            border-radius: 6px 6px 0 0; font-weight: bold; letter-spacing: 0;
+        }
+        #robotDialogText {
+            color: #ffffff; font-size: 19px; line-height: 1.65; min-height: 62px; text-align: center;
+        }
+        .gal-choices {
+            display: flex; justify-content: center; gap: 12px; margin-top: 18px;
+        }
+        .gal-choice {
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 6px; padding: 10px 18px; cursor: pointer;
+            color: #ffffff; background: rgba(255, 255, 255, 0.1);
+            font-weight: bold; font-size: 15px;
+        }
+        .gal-choice.primary {
+            background: #2ecc71; border-color: #2ecc71;
+        }
+        .gal-choice:hover {
+            filter: brightness(1.08);
+        }
+
+        /* 練習模式專用控制鈕圖層 */
+        #practiceControlLayer {
+            position: absolute; left: 46px; right: 46px; bottom: 34px;
+            min-height: 142px; box-sizing: border-box;
+            display: none; z-index: 250; background: rgba(16, 24, 39, 0.94);
+            padding: 34px 150px 24px 34px; border-radius: 8px;
+            border: 2px solid rgba(248, 196, 113, 0.86);
+            align-items: center; gap: 16px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.46);
+        }
+        .practice-copy { flex: 1; min-width: 0; text-align: left; }
+        #practiceStepBadge {
+            position: absolute; top: -24px; left: 24px;
+            padding: 8px 20px; background: #f8c471; color: #18202b;
+            border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;
+        }
+        #practiceStepText {
+            color: #ffffff; font-size: 19px; line-height: 1.65;
+        }
+        #endPracticeBtn:disabled {
+            background-color: #6b7280; cursor: not-allowed; opacity: 0.72;
+        }
+        #practiceGuideImage {
+            display: none; width: 100%; max-height: 118px; object-fit: contain;
+        }
+
+        #practiceCompleteLayer {
+            position: absolute; inset: 0; display: none; z-index: 270;
+            align-items: center; justify-content: center;
+            background: rgba(12, 18, 28, 0.72);
+        }
+        .practice-complete-box {
+            width: min(520px, 82%); box-sizing: border-box; text-align: center;
+            padding: 34px 42px; border-radius: 8px;
+            background: rgba(16, 24, 39, 0.97);
+            border: 2px solid rgba(248, 196, 113, 0.9);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+        .practice-complete-box h2 {
+            margin: 0 0 14px; color: #f8c471; font-size: 30px;
+        }
+        .practice-complete-box p {
+            margin: 0 0 24px; color: #ffffff; font-size: 18px; line-height: 1.6;
         }
 
         .btn {
@@ -92,27 +213,70 @@
     <div class="experiment-container">
         <canvas id="gameCanvas" width="1200" height="600"></canvas>
 
+        <div id="practiceControlLayer">
+            <img id="practiceGuideImage" src="practice_guide.png" alt="練習操作說明">
+            <div class="practice-copy">
+                <div id="practiceStepBadge">練習目標 0 / 10</div>
+                <div id="practiceStepText">請等待機器人送入原料，拿起烤好的黃色地瓜並送到上方橘色得分區。</div>
+            </div>
+            <button class="btn" id="endPracticeBtn" style="background-color: #e67e22;" disabled>完成練習，進入第一回合</button>
+        </div>
+
+        <div id="practiceCompleteLayer">
+            <div class="practice-complete-box">
+                <h2>練習階段結束！</h2>
+                <p>您已完成操作練習。按下確認後進入正式階段。</p>
+                <button class="btn" id="confirmPracticeCompleteBtn" type="button">確認</button>
+            </div>
+        </div>
+        
         <div id="introLayer">
             <div class="intro-top">
-                <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">行為科學實驗：高頻行為追踪與擬真路徑優化版</h2>
-                <p>歡迎參與本階段實驗。在本回合中，我們針對實驗流暢度與初始環境邊界進行了深度校準：</p>
-                <ul>
-                    <li><strong>嚴格同步起跑：</strong>在開局的 5 秒倒數結束前，**所有 AI 玩家與黑貓助手將在原地待命**，時間截止的瞬間才會正式啟動。</li>
-                    <li><strong>球體高度限制：</strong>為避免視覺干擾，所有的紫色生球現在會**集中出現在畫面的下半部（完全低於烤箱高度）**。</li>
-                    <li><strong>防卡死行為鎖：</strong>優化了左側 AI 機器人的決策鏈，排除在烤箱及得分區附近的判定重疊，提供更流暢的自動搬運模擬。</li>
-                </ul>
+                <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">協作搬運實驗：地瓜烘烤任務</h2>
+                <div class="intro-instructions">
+                    <p>您好！這是一個烤地瓜的遊戲，在這個遊戲當中，請您盡可能和機器人合作，在時間內完成最多烤地瓜。</p>
+                    <p>您的任務為操作右方畫面中的人物，將籃子裡的地瓜放在烤盤上。</p>
+                    <div class="intro-robot-role">
+                        <p>在遊戲的中間下方是機器人夥伴，他會操作右方畫面中的另一個人物將烤好的地瓜送上窗台。在遊戲中你們要合作完成這個任務，他在遊戲中的角色是</p>
+                        <img id="introRobotImage" src="direct_happy.jpg" alt="遊戲中的機器人夥伴">
+                    </div>
+                    <p>左方畫面則是其他與您連線的玩家，他們的任務也是在時間內盡可能完成最多烤地瓜。</p>
+                    <p>完成的地瓜數量（得分）將會呈現在上方。</p>
+                    <p><strong>每回合完成 10 顆烤地瓜，就能達到獲得報酬的標準；超過 10 顆後，完成越多烤地瓜，可以獲得越多參與獎勵。</strong></p>
+                    <p>如果其他玩家缺少地瓜，您也可以把烤好的地瓜送到對方的得分區或放在對方面前，幫助他們繼續完成任務。</p>
+                    <div class="intro-operation">
+                        <p><strong>操作方法為：</strong></p>
+                        <p>使用按鍵的上、下、左、右來進行移動</p>
+                        <p>使用按鍵的 space 來「拿取」與「放下」</p>
+                        <p>您可以在所有畫面中自由走動與隨意進行動作</p>
+                    </div>
+                </div>
             </div>
             <div class="intro-bottom">
                 <div class="input-group">
                     <label for="participantId">請輸入您的參與者編號 (Participant ID):</label>
                     <input type="text" id="participantId" placeholder="例如: SUB_001" autocomplete="off">
                 </div>
-                <button class="btn" id="startIntroBtn">確認並開始遊戲</button>
+                <button class="btn" id="startIntroBtn">確認並進入操作練習</button>
             </div>
         </div>
 
         <div id="waitingLayer">
-            <div class="waiting-text">請稍候，中央控制端正在同步環境變數...</div>
+            <div id="waitingLayerText" class="waiting-text">請稍候，中央控制端正在同步環境變數...</div>
+        </div>
+
+        <div id="robotDialogLayer">
+            <div class="gal-character">
+                <img id="robotDialogPortrait" src="direct_happy.jpg" alt="Robot">
+            </div>
+            <div class="gal-dialog-box">
+                <div class="gal-nameplate" id="robotDialogName">Robot</div>
+                <div id="robotDialogText"></div>
+                <div class="gal-choices">
+                    <button type="button" class="gal-choice primary" id="helpOtherTeamBtn">OK</button>
+                    <button type="button" class="gal-choice" id="focusOwnTeamBtn" style="display: none;">取消</button>
+                </div>
+            </div>
         </div>
 
         <div id="gameOverOverlay">
@@ -121,39 +285,34 @@
                 <p id="modalSub">正在打包並上傳您的行為數據...</p>
                 <div class="stats-container">
                     <div class="stats-item"><span>結束回合 (Finished Round):</span><span id="resRound" class="stats-val">1 / 3</span></div>
-                    <div class="stats-item"><span>左邊 AI 得分:</span><span id="resLeftScore" class="stats-val">0</span></div>
-                    <div class="stats-item"><span>右邊玩家得分:</span><span id="resRightScore" class="stats-val">0</span></div>
+                    <div class="stats-item"><span>對手得分:</span><span id="resLeftScore" class="stats-val">0</span></div>
+                    <div class="stats-item"><span>您的得分:</span><span id="resRightScore" class="stats-val">0</span></div>
                 </div>
-                
-                <div id="statusMessage">📡 正在自動將行為數據同步至中央試算表...</div>
                 
                 <button class="btn" id="nextRoundBtn" style="width: 100%; display: none;">確認，進入下一回合</button>
                 <button class="btn" id="goToSurveyBtn" style="width: 100%; display: none; background-color: #3498db;">確認，進入問卷階段</button>
-                <button class="btn" id="downloadBtn" style="background-color: #7f8c8d; width: 100%; margin-top: 10px;">手動下載本輪 CSV 備份</button>
             </div>
         </div>
 
         <div id="surveyLayer">
-            <div class="survey-title">後置實驗問卷調查</div>
+            <div id="surveyLayerTitle" class="survey-title">後置實驗問卷調查</div>
             <form id="surveyForm">
                 <div id="questionContainer"></div>
                 <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
-                    <button type="button" class="btn" id="submitSurveyBtn" style="background-color: #e67e22; padding: 12px 40px; font-size: 18px;">提交完整問卷並結束實驗</button>
+                    <button type="button" class="btn" id="submitSurveyBtn" style="background-color: #e67e22; padding: 12px 40px; font-size: 18px;">提交問卷</button>
                 </div>
             </form>
         </div>
 
         <div id="thanksLayer">
             <h1 style="color: #2ecc71; font-size: 42px; margin-bottom: 15px;">🎉 實驗已圓滿結束</h1>
-            <p style="font-size: 18px; color: #bdc3c7; max-width: 600px; line-height: 1.6;">
-                感謝您的參與！您在本回合的所有互動行為數據、時序軌跡及心理問卷量表，皆已成功封裝並安全傳輸至中央學術試算表後端。
+            <p style="font-size: 20px; color: #f8fafc; max-width: 680px; line-height: 1.7;">
+                感謝您的參與！請將此完成畫面截圖，回傳至實驗者提供的聯絡信箱，並等待實驗者後續聯繫。
             </p>
-            <div style="margin-top: 30px; background: #1c2833; padding: 20px 40px; border-radius: 8px; font-family: monospace;">
-                系統安全簽章：<span style="color: #f1c40f;">SUCCESS_DATA_SYNC_2026</span>
-            </div>
         </div>
     </div>
 
+    <script src="xlsx.full.min.js"></script>
     <script>
         // ==========================================
         // 請在此處填入您的 Google 表單 Entry IDs
@@ -163,13 +322,49 @@
         const ENTRY_ACTION_DATA = "entry.968320921";    // 每步即時動作數據串流
         const ENTRY_SURVEY_DATA = "entry.1500336990";    // 問卷回答數據
 
+        const CONDITION_ASSIGNMENT_MODE = "participantHash"; // 可改為 "random"
+        const ROBOT_DISPLAY_NAME = "Robot"; // 待確認正式名稱
+        const ROBOT_CONDITIONS = [
+            { id: "direct_happy", label: "直視 / 正向", image: "direct_happy.jpg" },
+            { id: "direct_neutral", label: "直視 / 中性", image: "direct_neutral.jpg" },
+            { id: "averted_happy", label: "側視 / 正向", image: "averted_happy.jpg" },
+            { id: "averted_neutral", label: "側視 / 中性", image: "averted_neutral.jpg" }
+        ];
+        const ROUND_DISTRIBUTIONS = {
+            1: { id: "round_1", opponent: 12, participant: 45 },
+            2: { id: "round_2", opponent: 10, participant: 40 },
+            3: { id: "round_3", opponent: 12, participant: 45 }
+        };
+        const WHEEL_VALUES = [...new Set(
+            Object.values(ROUND_DISTRIBUTIONS).flatMap(({ opponent, participant }) => [opponent, participant])
+        )].sort((a, b) => a - b);
+        const DEFAULT_SURVEY_QUESTIONS = [
+            "我能清楚理解本回合的目標與下一步操作。",
+            "機器人助手的行為讓我覺得可預測。",
+            "機器人提示或表情有幫助我理解目前狀態。",
+            "本回合的時間壓力是可以負荷的。",
+            "地瓜數量分配讓我覺得任務難度合理。",
+            "我覺得自己能順利控制角色完成任務。",
+            "我信任機器人助手會穩定完成它的工作。",
+            "我在本回合中感受到與機器人協作。",
+            "本回合的操作流程流暢自然。",
+            "我願意在下一回合繼續採用同樣的合作方式。"
+        ];
+        let surveyQuestions = [...DEFAULT_SURVEY_QUESTIONS];
+
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        const GAME_DURATION = 60; 
+        const GAME_DURATION = 180;
         const MAX_ROUNDS = 3; 
+        const PRACTICE_TARGET_SCORE = 10;
+        const ROUND_TARGET_SCORE = 10;
+        const PRACTICE_RAW_COUNT = 18;
+        const OVEN_CAPACITY = 3;
+        const COOK_DURATION_MS = 5000;
         const CAT_SPEED = 4.5;
         const BOT_SPEED = 2.6;
+        const WALK_PHASE_STEP = 0.22;
         const REACH_DISTANCE = 32;
         
         let currentStage = 'INTRO'; 
@@ -179,30 +374,71 @@
         let timeLeft = GAME_DURATION;
         let countdownSec = 5; 
         let gameTimer = null;
+        let countdownTimer = null;
+        let waitingTimer = null;
+        let allocationTimer = null;
         let startTime = null;
+        let roundEndHandled = false;
+        let surveyMode = "preRound";
+        let surveyStartedAt = null;
+        let lastSurveyResponseSeconds = 150;
+        let experimentCondition = null;
+        let allocationState = null;
+        let practiceTargetCompleted = false;
+        let roundTargetDialogPending = false;
+        let roundTargetReached = false;
+        let roundEndReason = "timeout";
+        let robotHelpDecision = "not_asked";
+        let robotDialogTypeTimer = null;
+        let robotDialogContext = null;
+        let robotDialogMessages = [];
+        let robotDialogMessageIndex = 0;
+        let round2OpponentScoredOutAt = null;
+        let round2ScarcityDialogShown = false;
+        let donatedPotatoes = 0;
+        let surveyQuestionSource = "built_in";
 
         let playerData = {
             gameDuration: GAME_DURATION,
             leftScore: 0,
             rightScore: 0,
+            playerDeliveredScore: 0,
             totalScore: 0, 
+            condition: "unassigned"
         };
         const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Space: false };
+        let playerMovementAxis = "x";
 
-        const topSectionHeight = 130; 
-        const gameSectionHeight = 470; 
+        const topSectionHeight = 78; 
+        const gameSectionHeight = canvas.height - topSectionHeight; 
         const midX = canvas.width / 2; // 600
+        const playerStart = { x: 900, y: topSectionHeight + 105 };
+        const robotWorkBarrier = {
+            x: 0,
+            y: topSectionHeight + 245,
+            width: canvas.width,
+            height: 30
+        };
+        const rawAreaWall = {
+            x: midX - 12,
+            y: robotWorkBarrier.y,
+            width: 24,
+            height: canvas.height - robotWorkBarrier.y - 10
+        };
 
-        const zoneSize = 75;
-        const leftZone = { x: 30, y: topSectionHeight + 20, width: zoneSize, height: zoneSize, color: "#2ecc71" };   
-        const rightZone = { x: canvas.width - zoneSize - 30, y: topSectionHeight + 20, width: zoneSize, height: zoneSize, color: "#2ecc71" }; 
+        const zoneSize = 70;
+        const leftZone = { x: midX - zoneSize - 10, y: topSectionHeight + 18, width: zoneSize, height: zoneSize, color: "#2ecc71" };   
+        const rightZone = { x: midX + 10, y: topSectionHeight + 18, width: zoneSize, height: zoneSize, color: "#2ecc71" }; 
 
         let ovens = [
-            { id: "L_Oven1", x: 380, y: topSectionHeight + 180, width: 70, height: 50, side: "left", slots: [] },
-            { id: "L_Oven2", x: 480, y: topSectionHeight + 180, width: 70, height: 50, side: "left", slots: [] },
-            { id: "R_Oven1", x: 650, y: topSectionHeight + 180, width: 70, height: 50, side: "right", slots: [] },
-            { id: "R_Oven2", x: 750, y: topSectionHeight + 180, width: 70, height: 50, side: "right", slots: [] }
+            { id: "L_Oven1", x: 135, y: topSectionHeight + 165, width: 110, height: 74, side: "left", slots: [] },
+            { id: "R_Oven1", x: canvas.width - 245, y: topSectionHeight + 165, width: 110, height: 74, side: "right", slots: [] }
         ];
+
+        const rawBaskets = {
+            left: { x: 24, y: canvas.height - 126, width: 158, height: 106 },
+            right: { x: canvas.width - 182, y: canvas.height - 126, width: 158, height: 106 }
+        };
 
         let bots = [];
         let blackCatBot = null; 
@@ -225,30 +461,284 @@
         const imgYellow = new Image();
         imgYellow.src = "cooked_ball.png"; 
 
+        const centerRobotImg = new Image();
+        centerRobotImg.src = "direct_happy.jpg";
+
         // --- 物件類別定義 ---
         class Cat {
-            constructor(x, y) { this.x = x; this.y = y; this.radius = 16; this.color = "#e67e22"; this.holdingBall = null; }
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 16;
+                this.color = "#e67e22";
+                this.holdingBall = null;
+                this.walkPhase = 0;
+                this.moving = false;
+            }
             update() {
-                if (currentStage !== 'GAMING') return;
-                if (keys.ArrowUp && this.y > topSectionHeight + this.radius) this.y -= CAT_SPEED;
-                if (keys.ArrowDown && this.y < canvas.height - this.radius) this.y += CAT_SPEED;
-                if (keys.ArrowLeft && this.x > this.radius) this.x -= CAT_SPEED;
-                if (keys.ArrowRight && this.x < canvas.width - this.radius) this.x += CAT_SPEED;
-                if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
+                if (currentStage !== 'GAMING' && currentStage !== 'PRACTICE') {
+                    this.moving = false;
+                    return;
+                }
+                const prevX = this.x;
+                const prevY = this.y;
+                const horizontalDirection = Number(keys.ArrowRight) - Number(keys.ArrowLeft);
+                const verticalDirection = Number(keys.ArrowDown) - Number(keys.ArrowUp);
+                let activeAxis = playerMovementAxis;
+                if (!horizontalDirection) activeAxis = "y";
+                if (!verticalDirection) activeAxis = "x";
+
+                if (activeAxis === "x" && horizontalDirection) {
+                    this.x += horizontalDirection * CAT_SPEED;
+                } else if (activeAxis === "y" && verticalDirection) {
+                    this.y += verticalDirection * CAT_SPEED;
+                }
+                this.x = clamp(this.x, this.radius, canvas.width - this.radius);
+                this.y = clamp(this.y, topSectionHeight + this.radius, canvas.height - this.radius);
+                resolveKitchenWallCollision(this, prevX, prevY);
+                this.moving = this.x !== prevX || this.y !== prevY;
+                if (this.moving) this.walkPhase += WALK_PHASE_STEP;
+                if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y - 25; }
             }
             draw() {
+                const bob = this.moving ? Math.sin(this.walkPhase) * 1.5 : 0;
                 ctx.save();
+                ctx.translate(this.x, this.y + bob);
+                ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
+                ctx.beginPath();
+                ctx.ellipse(0, 16, 18, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
                 if (useImages) {
-                    ctx.drawImage(catImg, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+                    ctx.drawImage(catImg, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
                 } else {
-                    ctx.beginPath(); ctx.moveTo(this.x - 18, this.y - 10); ctx.lineTo(this.x - 18, this.y - 25); ctx.lineTo(this.x - 5, this.y - 15); ctx.fillStyle = this.color; ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(this.x + 18, this.y - 10); ctx.lineTo(this.x + 18, this.y - 25); ctx.lineTo(this.x + 5, this.y - 15); ctx.fillStyle = this.color; ctx.fill();
-                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
-                    ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(this.x - 6, this.y - 4, 4, 0, Math.PI * 2); ctx.arc(this.x + 6, this.y - 4, 4, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = "#000000"; ctx.beginPath(); ctx.arc(this.x - 6, this.y - 4, 2, 0, Math.PI * 2); ctx.arc(this.x + 6, this.y - 4, 2, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = "#c7652a";
+                    ctx.lineWidth = 5;
+                    ctx.lineCap = "round";
+                    ctx.beginPath();
+                    ctx.moveTo(-14, 10);
+                    ctx.bezierCurveTo(-27, 14, -28, 0, -21, -7);
+                    ctx.stroke();
+
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.moveTo(-16, -11);
+                    ctx.lineTo(-14, -29);
+                    ctx.lineTo(-3, -18);
+                    ctx.moveTo(16, -11);
+                    ctx.lineTo(14, -29);
+                    ctx.lineTo(3, -18);
+                    ctx.fill();
+                    ctx.fillStyle = "#f5b17e";
+                    ctx.beginPath();
+                    ctx.moveTo(-13, -15);
+                    ctx.lineTo(-12, -24);
+                    ctx.lineTo(-6, -18);
+                    ctx.moveTo(13, -15);
+                    ctx.lineTo(12, -24);
+                    ctx.lineTo(6, -18);
+                    ctx.fill();
+
+                    fillRoundedRect(-17, -19, 34, 38, 13, this.color);
+                    ctx.fillStyle = "#fff3d8";
+                    ctx.beginPath();
+                    ctx.ellipse(0, 6, 10, 8, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = "#3e2a21";
+                    ctx.beginPath();
+                    ctx.arc(-6, -5, 2.2, 0, Math.PI * 2);
+                    ctx.arc(6, -5, 2.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(0, 1);
+                    ctx.lineTo(-3, 5);
+                    ctx.lineTo(3, 5);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = "#7a482f";
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath();
+                    ctx.moveTo(-6, 6); ctx.lineTo(-16, 3);
+                    ctx.moveTo(-6, 9); ctx.lineTo(-16, 10);
+                    ctx.moveTo(6, 6); ctx.lineTo(16, 3);
+                    ctx.moveTo(6, 9); ctx.lineTo(16, 10);
+                    ctx.stroke();
+                    fillRoundedRect(-15, 13, 30, 6, 3, "#f6cf6f");
+                    ctx.fillStyle = "#c7652a";
+                    ctx.beginPath();
+                    ctx.ellipse(-9, 17, 6, 4, 0, 0, Math.PI * 2);
+                    ctx.ellipse(9, 17, 6, 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
                 }
+
+                ctx.strokeStyle = "#c7652a";
+                ctx.lineWidth = 5;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                if (this.holdingBall) {
+                    ctx.moveTo(-13, 4);
+                    ctx.lineTo(-7, -16);
+                    ctx.moveTo(13, 4);
+                    ctx.lineTo(7, -16);
+                } else {
+                    ctx.moveTo(-14, 3);
+                    ctx.lineTo(-19, 14);
+                    ctx.moveTo(14, 3);
+                    ctx.lineTo(19, 14);
+                }
+                ctx.stroke();
                 ctx.restore();
             }
+        }
+
+        function normalizeAngle(angle) {
+            while (angle > Math.PI) angle -= Math.PI * 2;
+            while (angle < -Math.PI) angle += Math.PI * 2;
+            return angle;
+        }
+
+        function moveOpponentOrthogonally(worker, tx, ty, speedScale = 1) {
+            if (worker.pauseFrames > 0) {
+                worker.pauseFrames--;
+                worker.moving = false;
+                return;
+            }
+
+            const dx = tx - worker.x;
+            const dy = ty - worker.y;
+            if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
+                worker.moving = false;
+                worker.moveAxis = null;
+                return;
+            }
+
+            if (!worker.moveAxis) {
+                worker.moveAxis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+            }
+
+            const speed = BOT_SPEED * speedScale;
+            if (worker.moveAxis === "x") {
+                if (Math.abs(dx) < 4) {
+                    worker.moveAxis = "y";
+                    worker.pauseFrames = 8 + Math.floor(Math.random() * 14);
+                    worker.moving = false;
+                    return;
+                }
+                worker.x += Math.sign(dx) * Math.min(speed, Math.abs(dx));
+            } else {
+                if (Math.abs(dy) < 4) {
+                    worker.moveAxis = "x";
+                    worker.pauseFrames = 8 + Math.floor(Math.random() * 14);
+                    worker.moving = false;
+                    return;
+                }
+                worker.y += Math.sign(dy) * Math.min(speed, Math.abs(dy));
+            }
+
+            worker.walkPhase += WALK_PHASE_STEP;
+            worker.moving = true;
+            const pauseChance = worker.randomPauseChance ?? 0.006;
+            if (Math.random() < pauseChance) {
+                const pauseMin = worker.randomPauseMin ?? 10;
+                const pauseRange = worker.randomPauseRange ?? 24;
+                worker.pauseFrames = pauseMin + Math.floor(Math.random() * pauseRange);
+            }
+        }
+
+        function drawOpponentDog(worker, accentColor, label) {
+            const bob = worker.moving ? Math.sin(worker.walkPhase) * 1.5 : 0;
+            ctx.save();
+            ctx.translate(worker.x, worker.y + bob);
+            ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
+            ctx.beginPath();
+            ctx.ellipse(0, 16, 18, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#9a5d3b";
+            ctx.beginPath();
+            ctx.ellipse(-16, -10, 8, 14, -0.28, 0, Math.PI * 2);
+            ctx.ellipse(16, -10, 8, 14, 0.28, 0, Math.PI * 2);
+            ctx.fill();
+            fillRoundedRect(-17, -19, 34, 38, 13, "#c98250");
+            ctx.fillStyle = "#fff3d8";
+            ctx.beginPath();
+            ctx.ellipse(0, 6, 11, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#3e2a21";
+            ctx.beginPath();
+            ctx.arc(-6, -5, 2.2, 0, Math.PI * 2);
+            ctx.arc(6, -5, 2.2, 0, Math.PI * 2);
+            ctx.arc(0, 3, 3.2, 0, Math.PI * 2);
+            ctx.fill();
+            fillRoundedRect(-15, 13, 30, 6, 3, accentColor);
+            ctx.strokeStyle = "#9a5d3b";
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            if (worker.holdingBall) {
+                ctx.moveTo(-13, 4);
+                ctx.lineTo(-7, -16);
+                ctx.moveTo(13, 4);
+                ctx.lineTo(7, -16);
+            } else {
+                ctx.moveTo(-14, 3);
+                ctx.lineTo(-19, 14);
+                ctx.moveTo(14, 3);
+                ctx.lineTo(19, 14);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            fillRoundedRect(worker.x - 31, worker.y + 25, 62, 18, 5, "rgba(79, 52, 34, 0.86)");
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 10px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(label, worker.x, worker.y + 37);
+        }
+
+        function getRobotWorkAreaTop() {
+            return robotWorkBarrier.y + robotWorkBarrier.height + 32;
+        }
+
+        function drawOpponentRobot(worker, accentColor, label) {
+            if (worker.y < getRobotWorkAreaTop()) return;
+            const bob = worker.moving ? Math.sin(worker.walkPhase) : 0;
+            ctx.save();
+            ctx.translate(worker.x, worker.y + bob);
+            ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
+            ctx.beginPath();
+            ctx.ellipse(0, 16, 18, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#5b3a28";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, -20);
+            ctx.lineTo(0, -26);
+            ctx.stroke();
+            ctx.fillStyle = "#f1c40f";
+            ctx.beginPath();
+            ctx.arc(0, -28, 3, 0, Math.PI * 2);
+            ctx.fill();
+            fillRoundedRect(-18, -20, 36, 39, 8, accentColor);
+            fillRoundedRect(-13, -14, 26, 21, 5, "#eaf7f4");
+            ctx.fillStyle = "#3e2a21";
+            ctx.beginPath();
+            ctx.arc(-6, -4, 2.5, 0, Math.PI * 2);
+            ctx.arc(6, -4, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#3e2a21";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-5, 3);
+            ctx.lineTo(5, 3);
+            ctx.stroke();
+            ctx.restore();
+
+            fillRoundedRect(worker.x - 37, worker.y + 25, 74, 18, 5, "rgba(79, 52, 34, 0.86)");
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 9px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(label, worker.x, worker.y + 37);
         }
 
         // ========================================================
@@ -258,6 +748,15 @@
             constructor(x, y) {
                 this.x = x; this.y = y; this.radius = 14; this.color = "#16a085"; 
                 this.holdingBall = null; this.state = "SEARCH_YELLOW";
+                this.heading = 0; this.currentSpeed = 0; this.walkPhase = 0; this.moving = false;
+                this.moveAxis = null; this.pauseFrames = 12 + Math.floor(Math.random() * 24);
+                this.randomPauseChance = 0.008;
+                this.randomPauseMin = 18;
+                this.randomPauseRange = 36;
+                this.idleTargetX = x;
+                this.idleTargetY = y;
+                this.idleFrames = 0;
+                this.idleWalking = false;
 
                 // 防卡死監控變數 (5秒不動檢測)
                 // this.lastRecordedX = x; this.lastRecordedY = y;
@@ -288,7 +787,7 @@
                 //     return;
                 // }
 
-                if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
+                if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y - 24; }
 
                 // --- 核心行為狀態機（比照 RightBlackCatBot 設計） ---
                 if (this.state === "SEARCH_YELLOW") {
@@ -297,28 +796,36 @@
                     // 尋找左半邊掉在地面上的黃色熟球
                     let targetYellow = balls.find(b => !b.isHeld && b.x < midX && b.status === "yellow");
                     if (targetYellow) {
-                        let angle = Math.atan2(targetYellow.y - this.y, targetYellow.x - this.x);
-                        this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
+                        this.moveHumanLike(targetYellow.x, targetYellow.y);
                         if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
                             if (!targetYellow.isHeld) {
                                 this.holdingBall = targetYellow; targetYellow.isHeld = true;
+                                targetYellow.outputOvenId = null;
+                                targetYellow.outputSlot = null;
                                 this.state = "GO_TO_ZONE";
                             }
                         }
                     } else {
-                        // 沒事做時在左區中央安全的空地待命
-                        let rx = 220; let ry = 350; 
-                        if (Math.hypot(this.x - rx, this.y - ry) > 10) {
-                            let angle = Math.atan2(ry - this.y, rx - this.x);
-                            this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
+                        this.idleFrames--;
+                        if (this.idleFrames <= 0) {
+                            this.idleWalking = Math.random() >= 0.35;
+                            this.idleFrames = this.idleWalking
+                                ? 90 + Math.floor(Math.random() * 150)
+                                : 45 + Math.floor(Math.random() * 90);
+                            this.idleTargetX = 70 + Math.random() * (midX - 140);
+                            this.idleTargetY = topSectionHeight + 70 + Math.random() * (robotWorkBarrier.y - topSectionHeight - 120);
+                        }
+                        if (this.idleWalking && Math.hypot(this.x - this.idleTargetX, this.y - this.idleTargetY) > 8) {
+                            this.moveHumanLike(this.idleTargetX, this.idleTargetY, 0.68);
+                        } else {
+                            this.moving = false;
                         }
                     }
                 }
                 else if (this.state === "GO_TO_ZONE") {
                     if (!this.holdingBall) { this.state = "SEARCH_YELLOW"; return; }
                     let tx = leftZone.x + leftZone.width / 2; let ty = leftZone.y + leftZone.height / 2;
-                    let angle = Math.atan2(ty - this.y, tx - this.x);
-                    this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
+                    this.moveHumanLike(tx, ty);
                     
                     if (Math.hypot(this.x - tx, this.y - ty) < 20) {
                         let idx = balls.indexOf(this.holdingBall); if (idx > -1) balls.splice(idx, 1);
@@ -332,10 +839,12 @@
                 if (this.y < topSectionHeight + this.radius) this.y = topSectionHeight + this.radius; if (this.y > canvas.height - this.radius) this.y = canvas.height - this.radius;
             }
 
+            moveHumanLike(tx, ty, speedScale = 1) {
+                moveOpponentOrthogonally(this, tx, ty, speedScale);
+            }
+
             draw() {
-                ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
-                ctx.fillStyle = "#ffffff"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
-                ctx.fillText("AI 1(得分)", this.x, this.y + 3); ctx.restore();
+                drawOpponentDog(this, this.color, "對手玩家");
             }
         }
 
@@ -356,6 +865,8 @@
                 this.lastAngleSector = null; 
                 this.ai2_strideRemaining = 0; 
                 this.ai2_currentAngle = 0;     
+                this.heading = 0; this.currentSpeed = 0; this.walkPhase = 0; this.moving = false;
+                this.moveAxis = null; this.pauseFrames = 18 + Math.floor(Math.random() * 30);
 
                 // 防卡死監控變數
                 this.lastRecordedX = x; this.lastRecordedY = y;
@@ -385,7 +896,12 @@
                     return;
                 }
 
-                if (this.delayTimer > 0) { this.delayTimer--; return; }
+                if (this.delayTimer > 0) {
+                    this.delayTimer--;
+                    this.currentSpeed *= 0.72;
+                    this.moving = false;
+                    return;
+                }
                 if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
 
                 // 💡 修正判定：地上的紫色球除了沒被拿、在左半邊、是紫色之外，還必須「不在任何烤箱的槽(slots)中」
@@ -424,21 +940,22 @@
 
                     case "GO_TO_OVEN":
                         if (!this.holdingBall) { this.state = "SEARCH_PURPLE"; break; }
-                        let targetOven = ovens.find(o => o.side === "left" && o.slots.length < 3);
+                        let targetOven = ovens.find(o => o.side === "left" && o.slots.length < OVEN_CAPACITY);
                         if (targetOven) {
-                            let ox = targetOven.x + targetOven.width / 2; let oy = targetOven.y + targetOven.height / 2;
+                            let ox = targetOven.x + targetOven.width / 2; let oy = robotWorkBarrier.y + robotWorkBarrier.height + 12;
                             this.moveToTarget(ox, oy);
                             if (Math.hypot(this.x - ox, this.y - oy) < 25) {
                                 this.delayTimer = Math.floor(Math.random() * 10) + 10;
                                 this.holdingBall.isHeld = false;
-                                this.holdingBall.x = targetOven.x + 15 + (targetOven.slots.length * 18);
+                                this.holdingBall.x = targetOven.x + 12 + (targetOven.slots.length * 17);
                                 this.holdingBall.y = targetOven.y + targetOven.height / 2;
                                 
-                                this.holdingBall.cookProgress = 0; 
+                                this.holdingBall.cookProgress = 0;
+                                this.holdingBall.cookStartedAt = Date.now();
                                 targetOven.slots.push(this.holdingBall);
                                 this.holdingBall = null;
                                 
-                                this.escapeTargetX = this.x; this.escapeTargetY = oy + 90; 
+                                this.escapeTargetX = this.x; this.escapeTargetY = oy + 70; 
                                 this.ai2_strideRemaining = 0; 
                                 this.state = "LEAVE_OVEN";
                             }
@@ -454,120 +971,102 @@
 
                     case "IDLE_ROAM":
                         if (leftHasPurpleOnGround) { this.state = "SEARCH_PURPLE"; break; }
-                        this.idleActionTimer--;
-                        if (this.idleActionTimer <= 0) {
-                            if (Math.random() < 0.3) { this.idleSubState = "STOP"; this.idleActionTimer = 30; }
-                            else {
-                                this.idleSubState = "WALK";
-                                this.idleTargetX = Math.random() * (midX - 100) + 50;
-                                this.idleTargetY = Math.random() * (canvas.height - (topSectionHeight + 200)) + (topSectionHeight + 200);
-                                this.idleActionTimer = 90;
-                            }
-                        }
-                        if (this.idleSubState === "WALK") { this.moveToTarget(this.idleTargetX, this.idleTargetY); }
+                        this.idleSubState = "STOP";
+                        this.moving = false;
                         break;
                 }
 
                 if (this.x < this.radius) this.x = this.radius; if (this.x > midX - this.radius) this.x = midX - this.radius;
-                if (this.y < topSectionHeight + this.radius) this.y = topSectionHeight + this.radius; if (this.y > canvas.height - this.radius) this.y = canvas.height - this.radius;
+                this.y = clamp(this.y, getRobotWorkAreaTop(), canvas.height - 45);
             }
 
             moveToTarget(tx, ty) {
-                let dx = tx - this.x; let dy = ty - this.y;
-                let finalAngle = Math.atan2(dy, dx);
-                let speed = BOT_SPEED * 0.9; 
-
-                if (this.ai2_strideRemaining <= 0) {
-                    this.ai2_strideRemaining = Math.floor(Math.random() * (150 - 50 + 1)) + 50;
-                    let roll = Math.random();
-                    let chosenAngle = finalAngle;
-
-                    if (roll < 0.80) { 
-                        if (Math.abs(dx) > Math.abs(dy)) { chosenAngle = dx > 0 ? 0 : Math.PI; }
-                        else { chosenAngle = dy > 0 ? Math.PI / 2 : -Math.PI / 2; }
-                    } else { chosenAngle = finalAngle; }
-
-                    this.ai2_currentAngle = chosenAngle;
-
-                    let currentSector = "STILL";
-                    if (Math.abs(Math.cos(chosenAngle)) > 0.707) { currentSector = Math.cos(chosenAngle) > 0 ? "RIGHT" : "LEFT"; }
-                    else { currentSector = Math.sin(chosenAngle) > 0 ? "DOWN" : "UP"; }
-
-                    if (this.lastAngleSector !== null && this.lastAngleSector !== currentSector) {
-                        if (Math.random() < 0.50) { 
-                            this.delayTimer = Math.floor(Math.random() * 10) + 20;
-                            this.lastAngleSector = currentSector;
-                            return; 
-                        }
-                    }
-                    this.lastAngleSector = currentSector;
-                }
-
-                finalAngle = this.ai2_currentAngle;
-                this.ai2_strideRemaining -= speed; 
-
-                this.x += Math.cos(finalAngle) * speed; 
-                this.y += Math.sin(finalAngle) * speed;
+                const safeY = clamp(ty, getRobotWorkAreaTop(), canvas.height - 45);
+                moveOpponentOrthogonally(this, tx, safeY, 0.88);
+                this.y = clamp(this.y, getRobotWorkAreaTop(), canvas.height - 45);
             }
 
             draw() {
-                ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
-                ctx.fillStyle = "#ffffff"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
-                ctx.fillText("AI 2(搬運)", this.x, this.y + 3); ctx.restore();
+                drawOpponentRobot(this, this.color, "對手原料助手");
             }
         }
 
         class RightBlackCatBot {
             constructor(x, y) {
-                this.x = x; this.y = y; this.radius = 15; this.color = "#111111"; 
-                this.holdingBall = null; this.state = "SEARCH_YELLOW";
+                this.x = x; this.y = y; this.radius = 15; this.color = "#e69545";
+                this.holdingBall = null; this.state = "SEARCH_PURPLE";
+                this.escapeTargetX = x; this.escapeTargetY = y;
+                this.walkPhase = 0; this.moving = false;
+                this.moveAxis = null; this.pauseFrames = 14 + Math.floor(Math.random() * 24);
             }
             update() {
-                if (currentStage !== 'GAMING') return;
+                if (currentStage !== 'GAMING' && currentStage !== 'PRACTICE') {
+                    this.moving = false;
+                    return;
+                }
+                this.moving = false;
 
                 if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
 
-                if (this.state === "SEARCH_YELLOW") {
-                    if (this.holdingBall) { this.state = "GO_TO_ZONE"; return; }
-                    let targetYellow = balls.find(b => !b.isHeld && b.x >= midX && b.status === "yellow");
-                    if (targetYellow) {
-                        let angle = Math.atan2(targetYellow.y - this.y, targetYellow.x - this.x);
-                        this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
-                        if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
-                            if (!targetYellow.isHeld) {
-                                this.holdingBall = targetYellow; targetYellow.isHeld = true;
-                                this.state = "GO_TO_ZONE";
+                if (this.state === "SEARCH_PURPLE") {
+                    if (this.holdingBall) { this.state = "GO_TO_OVEN"; return; }
+                    let targetPurple = balls.find(b =>
+                        !b.isHeld &&
+                        b.x >= midX &&
+                        b.status === "purple" &&
+                        !ovens.some(o => o.slots.includes(b))
+                    );
+                    if (targetPurple) {
+                        this.moveToTarget(targetPurple.x, targetPurple.y);
+                        if (Math.hypot(this.x - targetPurple.x, this.y - targetPurple.y) < REACH_DISTANCE) {
+                            if (!targetPurple.isHeld) {
+                                this.holdingBall = targetPurple; targetPurple.isHeld = true;
+                                this.state = "GO_TO_OVEN";
                             }
                         }
                     } else {
                         let rx = 950; let ry = 400; 
-                        if (Math.hypot(this.x - rx, this.y - ry) > 10) {
-                            let angle = Math.atan2(ry - this.y, rx - this.x);
-                            this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
-                        }
+                        if (Math.hypot(this.x - rx, this.y - ry) > 10) this.moveToTarget(rx, ry);
                     }
                 }
-                else if (this.state === "GO_TO_ZONE") {
-                    if (!this.holdingBall) { this.state = "SEARCH_YELLOW"; return; }
-                    let tx = rightZone.x + rightZone.width / 2; let ty = rightZone.y + rightZone.height / 2;
-                    let angle = Math.atan2(ty - this.y, tx - this.x);
-                    this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
-                    
-                    if (Math.hypot(this.x - tx, this.y - ty) < 20) {
-                        let idx = balls.indexOf(this.holdingBall); if (idx > -1) balls.splice(idx, 1);
-                        playerData.rightScore++; 
-                        this.holdingBall = null; this.state = "SEARCH_YELLOW";
+                else if (this.state === "GO_TO_OVEN") {
+                    if (!this.holdingBall) { this.state = "SEARCH_PURPLE"; return; }
+                    let targetOven = ovens.find(o => o.side === "right" && o.slots.length < OVEN_CAPACITY);
+                    if (targetOven) {
+                        let tx = targetOven.x + targetOven.width / 2; let ty = robotWorkBarrier.y + robotWorkBarrier.height + 12;
+                        this.moveToTarget(tx, ty);
+                        if (Math.hypot(this.x - tx, this.y - ty) < 25) {
+                            this.holdingBall.isHeld = false;
+                            this.holdingBall.x = targetOven.x + 12 + (targetOven.slots.length * 17);
+                            this.holdingBall.y = targetOven.y + targetOven.height / 2;
+                            this.holdingBall.cookProgress = 0;
+                            this.holdingBall.cookStartedAt = Date.now();
+                            targetOven.slots.push(this.holdingBall);
+                            this.holdingBall = null;
+                            this.escapeTargetX = this.x;
+                            this.escapeTargetY = targetOven.y + targetOven.height + 85;
+                            this.state = "LEAVE_OVEN";
+                        }
+                    } else {
+                        this.moveToTarget(950, 500);
+                    }
+                }
+                else if (this.state === "LEAVE_OVEN") {
+                    this.moveToTarget(this.escapeTargetX, this.escapeTargetY);
+                    if (Math.hypot(this.x - this.escapeTargetX, this.y - this.escapeTargetY) < 22) {
+                        this.state = "SEARCH_PURPLE";
                     }
                 }
                 if (this.x < midX + this.radius) this.x = midX + this.radius; if (this.x > canvas.width - this.radius) this.x = canvas.width - this.radius;
-                if (this.y < topSectionHeight + this.radius) this.y = topSectionHeight + this.radius; if (this.y > canvas.height - this.radius) this.y = canvas.height - this.radius;
+                this.y = clamp(this.y, getRobotWorkAreaTop(), canvas.height - 45);
+            }
+            moveToTarget(tx, ty) {
+                const safeY = clamp(ty, getRobotWorkAreaTop(), canvas.height - 45);
+                moveOpponentOrthogonally(this, tx, safeY, 0.88);
+                this.y = clamp(this.y, getRobotWorkAreaTop(), canvas.height - 45);
             }
             draw() {
-                ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
-                ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(this.x - 4, this.y - 2, 2.5, 0, Math.PI * 2); ctx.arc(this.x + 4, this.y - 2, 2.5, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = "#000000"; ctx.beginPath(); ctx.arc(this.x - 4, this.y - 2, 1, 0, Math.PI * 2); ctx.arc(this.x + 4, this.y - 2, 1, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = this.color; ctx.beginPath(); ctx.moveTo(this.x - 12, this.y - 8); ctx.lineTo(this.x - 6, this.y - 14); ctx.lineTo(this.x - 2, this.y - 10); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(this.x + 12, this.y - 8); ctx.lineTo(this.x + 6, this.y - 14); ctx.lineTo(this.x + 2, this.y - 10); ctx.fill(); ctx.restore();
+                drawOpponentRobot(this, this.color, "您的原料助手");
             }
         }
 
@@ -580,6 +1079,8 @@
                 this.status = "purple"; 
                 this.isHeld = false; 
                 this.originSide = startSide; 
+                this.outputOvenId = null;
+                this.outputSlot = null;
             }
             
             draw() {
@@ -606,52 +1107,238 @@
             }
         }
 
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function resolveKitchenWallCollision(entity, previousX, previousY) {
+            const participantLimitY = robotWorkBarrier.y - entity.radius - 2;
+            if (entity.y > participantLimitY) entity.y = participantLimitY;
+
+            if (previousY >= rawAreaWall.y) {
+                const leftLimit = rawAreaWall.x - entity.radius;
+                const rightLimit = rawAreaWall.x + rawAreaWall.width + entity.radius;
+                if (entity.x > leftLimit && entity.x < rightLimit) {
+                    entity.x = previousX < midX ? leftLimit : rightLimit;
+                }
+            }
+        }
+
+        function hashString(value) {
+            let hash = 0;
+            for (let i = 0; i < value.length; i++) {
+                hash = ((hash << 5) - hash) + value.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash);
+        }
+
+        function assignExperimentCondition() {
+            if (experimentCondition) return experimentCondition;
+            const seed = CONDITION_ASSIGNMENT_MODE === "random"
+                ? Math.floor(Math.random() * 1000000)
+                : hashString(participantId || "ANONYMOUS");
+            const robot = ROBOT_CONDITIONS[seed % ROBOT_CONDITIONS.length];
+            experimentCondition = {
+                id: `${robot.id}_fixed_round_distribution`,
+                robot,
+                distributionMode: "fixed_by_round"
+            };
+            centerRobotImg.src = robot.image;
+            playerData.condition = experimentCondition.id;
+            return experimentCondition;
+        }
+
+        function getRoundDistribution(round = currentRound) {
+            return ROUND_DISTRIBUTIONS[round] || ROUND_DISTRIBUTIONS[1];
+        }
+
+        function resetRoundData() {
+            clearInterval(gameTimer);
+            gameTimer = null;
+            startTime = null;
+            timeLeft = GAME_DURATION;
+            roundEndHandled = false;
+            roundTargetDialogPending = false;
+            roundTargetReached = false;
+            roundEndReason = "timeout";
+            robotDialogContext = null;
+            robotDialogMessages = [];
+            robotDialogMessageIndex = 0;
+            round2OpponentScoredOutAt = null;
+            round2ScarcityDialogShown = false;
+            robotHelpDecision = "not_asked";
+            donatedPotatoes = 0;
+            currentPickupSide = null;
+            playerData = {
+                gameDuration: GAME_DURATION,
+                leftScore: 0,
+                rightScore: 0,
+                playerDeliveredScore: 0,
+                totalScore: 0,
+                condition: experimentCondition ? experimentCondition.id : "unassigned"
+            };
+        }
+
+        function spawnSweetPotatoCluster(count, side) {
+            const basket = rawBaskets[side];
+            const columns = 9;
+            for (let i = 0; i < count; i++) {
+                const column = i % columns;
+                const row = Math.floor(i / columns);
+                const x = basket.x + 20 + column * 15;
+                const y = basket.y + 25 + row * 17;
+                balls.push(new Ball(idCounter++, x, y, side));
+            }
+        }
+
         // --- 區域座標設定 ---
-        const cat = new Cat(900, 420);
+        const cat = new Cat(playerStart.x, playerStart.y);
 
         function spawnExperimentObjects() {
+            assignExperimentCondition();
+            const distribution = getRoundDistribution();
             balls = [];
             ovens.forEach(o => o.slots = []); 
             idCounter = 1;
 
-            let minY = topSectionHeight + 240; 
-            let maxY = canvas.height - 40;
+            spawnSweetPotatoCluster(distribution.opponent, "left");
+            spawnSweetPotatoCluster(distribution.participant, "right");
 
-            for (let i = 0; i < 10; i++) {
-                let rx = Math.random() * (midX - 100) + 50;
-                let ry = Math.random() * (maxY - minY) + minY;
-                balls.push(new Ball(idCounter++, rx, ry, 'left'));
-            }
+            bots = [ new LeftScoreBot(330, 215), new LeftCarrierBot(220, 455) ];
+            blackCatBot = new RightBlackCatBot(980, 455);
+        }
 
-            for (let i = 0; i < 50; i++) {
-                let rx = Math.random() * (midX - 100) + midX + 50;
-                let ry = Math.random() * (maxY - minY) + minY;
-                balls.push(new Ball(idCounter++, rx, ry, 'right'));
-            }
-
-            // 👇 修正：分別使用全新拆分出的類別來初始化 AI 1 與 AI 2
-            bots = [ new LeftScoreBot(150, 400), new LeftCarrierBot(250, 450) ];
-            blackCatBot = new RightBlackCatBot(950, 420);
+        function spawnPracticeObjects() {
+            balls = [];
+            ovens.forEach(o => o.slots = []);
+            bots = [];
+            blackCatBot = new RightBlackCatBot(980, 455);
+            idCounter = 1;
+            resetRoundData();
+            practiceTargetCompleted = false;
+            cat.holdingBall = null;
+            cat.x = playerStart.x;
+            cat.y = playerStart.y;
+            spawnSweetPotatoCluster(PRACTICE_RAW_COUNT, "right");
+            updatePracticeGuide(true);
         }
 
         function getLeftRemainingCount() { return balls.filter(b => b.x < midX).length; }
         function getRightRemainingCount() { return balls.filter(b => b.x >= midX).length; }
+        function getLeftRawCount() { return balls.filter(b => b.x < midX && b.status === "purple").length; }
+        function getRightRawCount() { return balls.filter(b => b.x >= midX && b.status === "purple").length; }
+
+        function updatePracticeGuide(forceRender = false) {
+            if (currentStage !== 'PRACTICE' && !forceRender) return;
+            const badge = document.getElementById("practiceStepBadge");
+            const text = document.getElementById("practiceStepText");
+            const endBtn = document.getElementById("endPracticeBtn");
+            const score = Math.min(playerData.rightScore, PRACTICE_TARGET_SCORE);
+            const cookedOnGround = balls.some(b => !b.isHeld && b.status === "yellow" && !ovens.some(o => o.slots.includes(b)));
+            const holdingCooked = cat.holdingBall && cat.holdingBall.status === "yellow";
+            const cookingNow = ovens.some(o => o.side === "right" && o.slots.some(b => b.status === "purple"));
+
+            badge.innerText = practiceTargetCompleted
+                ? "練習完成"
+                : `練習目標 ${score} / ${PRACTICE_TARGET_SCORE}`;
+            if (practiceTargetCompleted) {
+                text.innerText = "已達成 10 顆目標，請確認後進入第一回合。";
+            } else if (holdingCooked) {
+                text.innerText = "很好，請把手上的黃色熟地瓜送到上方橘色得分區，按 Space 放下得分。";
+            } else if (cookedOnGround) {
+                text.innerText = "有黃色熟地瓜出爐了。請靠近它按 Space 拿起，再送到上方橘色得分區。";
+            } else if (cookingNow) {
+                text.innerText = "機器人正在送原料，烤箱正在加熱。請等待黃色熟地瓜從烤箱上方出爐。";
+            } else {
+                text.innerText = "請觀察橘金色機器人把紫色生地瓜送進烤箱；您的任務是把烤好的黃色地瓜送到上方橘色得分區。";
+            }
+            endBtn.style.display = "none";
+            endBtn.disabled = true;
+        }
+
+        function drawPracticeCue(timestamp) {
+            if (currentStage !== 'PRACTICE' || practiceTargetCompleted) return;
+            const pulse = 0.55 + Math.sin(timestamp / 180) * 0.25;
+            ctx.save();
+            ctx.strokeStyle = `rgba(231, 126, 34, ${pulse})`;
+            ctx.lineWidth = 5;
+            ctx.setLineDash([10, 7]);
+
+            const cookedTargets = balls.filter(b => !b.isHeld && b.status === "yellow" && !ovens.some(o => o.slots.includes(b)));
+            if (cat.holdingBall && cat.holdingBall.status === "yellow") {
+                ctx.strokeRect(rightZone.x - 8, rightZone.y - 8, rightZone.width + 16, rightZone.height + 16);
+            } else if (cookedTargets.length > 0) {
+                cookedTargets.slice(0, 4).forEach(b => {
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, 34, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+            } else {
+                ovens.filter(o => o.side === "right").forEach(o => {
+                    ctx.strokeRect(o.x - 8, o.y - 8, o.width + 16, o.height + 16);
+                });
+            }
+            ctx.restore();
+        }
+
+        function checkPracticeTarget() {
+            if (currentStage !== 'PRACTICE' || practiceTargetCompleted) return;
+            if (playerData.rightScore >= PRACTICE_TARGET_SCORE) completePracticeTarget();
+        }
+
+        function completePracticeTarget() {
+            if (practiceTargetCompleted) return;
+            practiceTargetCompleted = true;
+            updatePracticeGuide(true);
+            document.getElementById("practiceControlLayer").style.display = "none";
+            currentStage = 'PRACTICE_COMPLETE';
+            document.getElementById("practiceCompleteLayer").style.display = "flex";
+        }
+
+        function confirmPracticeComplete() {
+            if (currentStage !== 'PRACTICE_COMPLETE') return;
+            document.getElementById("practiceCompleteLayer").style.display = "none";
+            currentRound = 1;
+            cat.holdingBall = null;
+            cat.x = playerStart.x;
+            cat.y = playerStart.y;
+            blackCatBot = null;
+            balls = [];
+            ovens.forEach(o => o.slots = []);
+            assignExperimentCondition();
+            showWaitingThenStartRound();
+        }
 
         // ==========================================
         // 🔮 【核心統一區域】全域烤箱狀態輪詢更新 
         // ==========================================
+        function placeCookedBallInOutputQueue(ball, oven) {
+            const usedSlots = new Set(
+                balls
+                    .filter(other => other !== ball && other.outputOvenId === oven.id && !other.isHeld)
+                    .map(other => other.outputSlot)
+            );
+            let slot = 0;
+            while (usedSlots.has(slot)) slot++;
+            ball.outputOvenId = oven.id;
+            ball.outputSlot = slot;
+            ball.x = oven.x + 16 + (slot % 4) * 26;
+            ball.y = oven.y - 24 - Math.floor(slot / 4) * 24;
+        }
+
         function updateOvens() {
+            const now = Date.now();
             ovens.forEach(o => {
                 // 不分 side === "right"，左右烤箱邏輯在此完全同步
                 o.slots.forEach(b => {
                     if (b.status === "purple") {
-                        if (b.cookProgress === undefined) b.cookProgress = 0;
-                        
-                        b.cookProgress += (100 / (3 * 60)); // 3秒煮熟 (以 60 FPS 換算)
+                        if (b.cookStartedAt === undefined) b.cookStartedAt = now;
+                        b.cookProgress = Math.min(100, ((now - b.cookStartedAt) / COOK_DURATION_MS) * 100);
                         
                         if (b.cookProgress >= 100) {
                             b.status = "yellow";
-                            b.y = o.y + o.height + 20; // 烤好後自動往下彈出到烤箱下方
+                            placeCookedBallInOutputQueue(b, o);
                             
                             // 自烤箱插槽列表中移除，吐回大地圖原生 balls 列表中
                             let idx = o.slots.indexOf(b);
@@ -663,12 +1350,14 @@
         }
 
         function sendActionPayloadToGoogleForm(actionType) {
-            let elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+            if (currentStage === 'PRACTICE') return;
+            let elapsed = startTime ? ((Date.now() - startTime) / 1000).toFixed(2) : "0.00";
             let leftCount = getLeftRemainingCount();
             let rightCount = getRightRemainingCount();
             let totalScore = playerData.leftScore + playerData.rightScore;
+            let conditionId = experimentCondition ? experimentCondition.id : "unassigned";
 
-            let payload = `Time:${elapsed},X:${Math.round(cat.x)},Y:${Math.round(cat.y)},Act:${actionType},L_Score:${playerData.leftScore},R_Score:${playerData.rightScore},TotalScore:${totalScore},R_BallLeft:${rightCount},L_BallLeft:${leftCount}`;
+            let payload = `Round:${currentRound},Condition:${conditionId},HelpDecision:${robotHelpDecision},Time:${elapsed},X:${Math.round(cat.x)},Y:${Math.round(cat.y)},Act:${actionType},L_Score:${playerData.leftScore},R_Score:${playerData.rightScore},PlayerDeliveries:${playerData.playerDeliveredScore},TotalScore:${totalScore},R_BallLeft:${rightCount},L_BallLeft:${leftCount}`;
             console.log("📡 行為追蹤串流:", payload);
 
             if (GOOGLE_FORM_URL.includes("XXXXXXXXXXXXX")) return;
@@ -680,23 +1369,27 @@
         }
 
         function handlePlayerAction() {
-            if (currentStage !== 'GAMING') return;
+            if (currentStage !== 'GAMING' && currentStage !== 'PRACTICE') return;
             let currentSide = (cat.x < midX) ? "left" : "right";
 
             if (!cat.holdingBall) {
                 let closestBall = null; let minDist = REACH_DISTANCE;
                 balls.forEach(ball => {
-                    if (!ball.isHeld) {
+                    let isInsideAnyOven = ovens.some(o => o.slots.includes(ball));
+                    if (!ball.isHeld && !isInsideAnyOven) {
                         let dist = Math.hypot(cat.x - ball.x, cat.y - ball.y);
                         if (dist < minDist) { minDist = dist; closestBall = ball; }
                     }
                 });
                 if (closestBall) {
                     cat.holdingBall = closestBall; closestBall.isHeld = true;
+                    closestBall.outputOvenId = null;
+                    closestBall.outputSlot = null;
                     currentPickupSide = currentSide; 
                     
                     let actName = (currentPickupSide === "right") ? "pickFromRight" : "pickFromLeft";
                     sendActionPayloadToGoogleForm(actName);
+                    updatePracticeGuide();
                 }
             } else {
                 let b = cat.holdingBall; b.isHeld = false; cat.holdingBall = null;
@@ -709,27 +1402,45 @@
                 else if (currentPickupSide === "left" && dropSide === "left") finalActionType = "stayThere";
 
                 let insideOven = null;
+                let closestOvenDistance = Infinity;
                 ovens.forEach(o => {
-                    if (b.x >= o.x && b.x <= o.x + o.width && b.y >= o.y && b.y <= o.y + o.height) insideOven = o;
+                    const centerX = o.x + o.width / 2;
+                    const centerY = o.y + o.height / 2;
+                    const distanceToOven = Math.hypot(b.x - centerX, b.y - centerY);
+                    const insideRect = b.x >= o.x && b.x <= o.x + o.width && b.y >= o.y && b.y <= o.y + o.height;
+                    if ((insideRect || distanceToOven < 58) && distanceToOven < closestOvenDistance) {
+                        insideOven = o;
+                        closestOvenDistance = distanceToOven;
+                    }
                 });
 
                 if (insideOven) {
-                    if (insideOven.side === "left") {
-                        alert("⚠️ 實驗安全禁止：您無法使用左半邊 AI 助手的烤箱！");
-                        b.x = midX + 30; b.y = cat.y; 
-                        sendActionPayloadToGoogleForm(`${finalActionType}_OvenLeftDenied`);
+                    if (b.status !== "purple") {
+                        b.x = cat.x;
+                        b.y = cat.y + 24;
+                        sendActionPayloadToGoogleForm(`${finalActionType}_CookedToOvenIgnored`);
+                        updatePracticeGuide();
                         return;
                     }
-                    if (insideOven.slots.length >= 3) {
+                    if (b.originSide !== insideOven.side) {
+                        alert("⚠️ 生地瓜只能放進同隊烤箱；請從上方通道運送烤好的黃色地瓜。");
+                        b.x = cat.x;
+                        b.y = cat.y + 24;
+                        sendActionPayloadToGoogleForm(`${finalActionType}_CrossTeamOvenDenied`);
+                        updatePracticeGuide();
+                        return;
+                    }
+                    if (insideOven.slots.length >= OVEN_CAPACITY) {
                         alert("烤箱已滿！");
                         b.y = insideOven.y + insideOven.height + 20; 
                         sendActionPayloadToGoogleForm(`${finalActionType}_OvenFull`);
                         return;
                     }
                     
-                    b.x = insideOven.x + 12 + (insideOven.slots.length * 18);
+                    b.x = insideOven.x + 12 + (insideOven.slots.length * 17);
                     b.y = insideOven.y + insideOven.height / 2;
-                    b.cookProgress = 0; // 玩家手動放入右側烤箱時同步重置進度
+                    b.cookProgress = 0;
+                    b.cookStartedAt = Date.now();
                     insideOven.slots.push(b);
                     
                     sendActionPayloadToGoogleForm(`${finalActionType}_PutToOven`);
@@ -739,24 +1450,334 @@
                 let inRightZone = (b.x >= rightZone.x && b.x <= rightZone.x + rightZone.width && b.y >= rightZone.y && b.y <= rightZone.y + rightZone.height);
                 let inLeftZone = (b.x >= leftZone.x && b.x <= leftZone.x + leftZone.width && b.y >= leftZone.y && b.y <= leftZone.y + leftZone.height);
 
-                if (inLeftZone || (inRightZone && b.x < midX)) {
-                    alert("⚠️ 實驗安全禁止：您無法放入左側得分區！");
-                    b.x = midX + 30; b.y = cat.y;
-                    sendActionPayloadToGoogleForm(`${finalActionType}_LeftZoneDenied`);
+                if (inLeftZone) {
+                    if (b.status === "yellow") {
+                        playerData.leftScore++;
+                        if (currentRound === 2) donatedPotatoes++;
+                        let idx = balls.indexOf(b); if (idx > -1) balls.splice(idx, 1);
+                        sendActionPayloadToGoogleForm(`${finalActionType}_ScoreOtherTeamSuccess`);
+                    } else {
+                        alert("❌ 紫色生地瓜放入不得分！請先放進烤箱加熱 5 秒。");
+                        sendActionPayloadToGoogleForm(`${finalActionType}_ScoreOtherTeamFailedPurple`);
+                    }
                 } 
                 else if (inRightZone) {
                     if (b.status === "yellow") {
                         playerData.rightScore++;
+                        playerData.playerDeliveredScore++;
                         let idx = balls.indexOf(b); if (idx > -1) balls.splice(idx, 1);
                         sendActionPayloadToGoogleForm(`${finalActionType}_ScoreSuccess`);
                     } else {
-                        alert("❌ 紫色生球放入不得分！請先放進烤箱加熱 3 秒。");
+                        alert("❌ 紫色生球放入不得分！請先放進烤箱加熱 5 秒。");
                         sendActionPayloadToGoogleForm(`${finalActionType}_ScoreFailedPurple`);
                     }
                 } else {
                     sendActionPayloadToGoogleForm(`${finalActionType}_DropOnGround`);
                 }
+                updatePracticeGuide();
             }
+        }
+
+        function drawCoverImage(img, x, y, width, height) {
+            const scale = Math.max(width / img.naturalWidth, height / img.naturalHeight);
+            const sw = width / scale;
+            const sh = height / scale;
+            const sx = (img.naturalWidth - sw) / 2;
+            const sy = (img.naturalHeight - sh) / 2;
+            ctx.drawImage(img, sx, sy, sw, sh, x, y, width, height);
+        }
+
+        function roundedRectPath(x, y, width, height, radius) {
+            const r = Math.min(radius, width / 2, height / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + width - r, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+            ctx.lineTo(x + width, y + height - r);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+            ctx.lineTo(x + r, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+        }
+
+        function fillRoundedRect(x, y, width, height, radius, color) {
+            roundedRectPath(x, y, width, height, radius);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function strokeRoundedRect(x, y, width, height, radius, color, lineWidth = 2) {
+            roundedRectPath(x, y, width, height, radius);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        }
+
+        function drawKitchenFloor() {
+            ctx.fillStyle = "#f7ead2";
+            ctx.fillRect(0, topSectionHeight, canvas.width, gameSectionHeight);
+
+            const tile = 48;
+            for (let y = topSectionHeight; y < canvas.height; y += tile) {
+                for (let x = 0; x < canvas.width; x += tile) {
+                    const isAlt = ((x / tile) + (y / tile)) % 2 === 0;
+                    ctx.fillStyle = isAlt ? "#ffe9c6" : "#f9dcae";
+                    ctx.fillRect(x, y, tile, tile);
+                }
+            }
+
+            ctx.strokeStyle = "rgba(116, 75, 43, 0.15)";
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= canvas.width; x += tile) {
+                ctx.beginPath(); ctx.moveTo(x, topSectionHeight); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = topSectionHeight; y <= canvas.height; y += tile) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+        }
+
+        function drawRawAreaWall() {
+            const x = rawAreaWall.x;
+            const y = rawAreaWall.y;
+            const w = rawAreaWall.width;
+            const h = rawAreaWall.height;
+            fillRoundedRect(x - 10, y - 8, w + 20, h + 16, 10, "#6f4a33");
+            fillRoundedRect(x - 4, y - 2, w + 8, h + 4, 8, "#b9794c");
+
+            ctx.strokeStyle = "rgba(255, 238, 200, 0.35)";
+            ctx.lineWidth = 2;
+            for (let rowY = y + 18; rowY < y + h; rowY += 32) {
+                ctx.beginPath();
+                ctx.moveTo(x - 4, rowY);
+                ctx.lineTo(x + w + 4, rowY);
+                ctx.stroke();
+            }
+
+        }
+
+        function drawRobotWorkBarrier() {
+            const y = robotWorkBarrier.y;
+            fillRoundedRect(8, y - 8, canvas.width - 16, robotWorkBarrier.height + 16, 8, "#5f3d2c");
+            ctx.fillStyle = "#c88958";
+            ctx.fillRect(12, y - 2, canvas.width - 24, robotWorkBarrier.height + 4);
+            ctx.fillStyle = "#f6cf95";
+            ctx.fillRect(12, y - 2, canvas.width - 24, 8);
+
+            ctx.fillStyle = "#fff4d8";
+            for (let x = 34; x < canvas.width; x += 64) {
+                ctx.beginPath();
+                ctx.arc(x, y + 15, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            [midX / 2, midX + midX / 2].forEach(cx => {
+                fillRoundedRect(cx - 76, y + 5, 152, 22, 5, "#6f4a33");
+                ctx.fillStyle = "#fff4d8";
+                ctx.font = "bold 12px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("機器人工作區｜請勿進入", cx, y + 20);
+            });
+        }
+
+        function drawRawBasket(basket, label, count, accentColor) {
+            fillRoundedRect(basket.x, basket.y, basket.width, basket.height, 8, "#9b6038");
+            fillRoundedRect(basket.x + 6, basket.y + 9, basket.width - 12, basket.height - 15, 6, "#c98b57");
+            ctx.strokeStyle = "rgba(91, 58, 40, 0.45)";
+            ctx.lineWidth = 2;
+            for (let x = basket.x + 18; x < basket.x + basket.width - 8; x += 22) {
+                ctx.beginPath();
+                ctx.moveTo(x, basket.y + 11);
+                ctx.lineTo(x, basket.y + basket.height - 8);
+                ctx.stroke();
+            }
+            for (let y = basket.y + 29; y < basket.y + basket.height - 7; y += 22) {
+                ctx.beginPath();
+                ctx.moveTo(basket.x + 7, y);
+                ctx.lineTo(basket.x + basket.width - 7, y);
+                ctx.stroke();
+            }
+            fillRoundedRect(basket.x + 4, basket.y - 22, basket.width - 8, 24, 5, "#fff9ea");
+            ctx.fillStyle = accentColor;
+            ctx.font = "bold 11px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(`${label} ${count}`, basket.x + basket.width / 2, basket.y - 6);
+        }
+
+        function drawServingZone(zone, label, accentColor) {
+            fillRoundedRect(zone.x - 8, zone.y - 8, zone.width + 16, zone.height + 18, 10, "#8d5b3d");
+            fillRoundedRect(zone.x, zone.y, zone.width, zone.height, 8, "#f9f0d7");
+            strokeRoundedRect(zone.x, zone.y, zone.width, zone.height, 8, accentColor, 4);
+
+            ctx.fillStyle = accentColor;
+            ctx.beginPath();
+            ctx.arc(zone.x + zone.width / 2, zone.y + zone.height / 2 + 3, 24, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#fffdf6";
+            ctx.beginPath();
+            ctx.arc(zone.x + zone.width / 2, zone.y + zone.height / 2 + 3, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            const labelX = zone === leftZone ? zone.x - 105 : zone.x + zone.width + 10;
+            fillRoundedRect(labelX, zone.y + 25, 95, 26, 6, "#ffffff");
+            ctx.fillStyle = "#6d4329";
+            ctx.font = "bold 12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(label, labelX + 47.5, zone.y + 42);
+        }
+
+        function drawKitchenOven(o) {
+            const bodyColor = o.side === "left" ? "#75b9ae" : "#e7a45f";
+            fillRoundedRect(o.x - 6, o.y - 10, o.width + 12, o.height + 18, 8, "#5d4031");
+            fillRoundedRect(o.x, o.y - 4, o.width, o.height + 8, 7, bodyColor);
+            fillRoundedRect(o.x + 9, o.y + 10, o.width - 18, o.height - 8, 5, "#fff3d7");
+            ctx.fillStyle = "#3e2a21";
+            ctx.beginPath(); ctx.arc(o.x + 17, o.y + 4, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(o.x + o.width - 17, o.y + 4, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(o.x + 24, o.y + 21, 8, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(o.x + o.width - 24, o.y + 21, 8, 0, Math.PI * 2); ctx.stroke();
+            fillRoundedRect(o.x + 10, o.y - 28, o.width - 20, 18, 5, "#fff9ea");
+            ctx.fillStyle = "#5b3a28";
+            ctx.font = "bold 10px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(`烤箱 ${o.slots.length}/${OVEN_CAPACITY}`, o.x + o.width / 2, o.y - 15);
+        }
+
+        function drawBottomRobot() {
+            const panelW = 310;
+            const panelH = 124;
+            const panelX = midX - panelW / 2;
+            const panelY = canvas.height - panelH - 10;
+            fillRoundedRect(panelX, panelY, panelW, panelH, 10, "rgba(255, 249, 234, 0.96)");
+            strokeRoundedRect(panelX, panelY, panelW, panelH, 10, "#8f5d3b", 3);
+
+            const cx = panelX + 70;
+            const cy = panelY + panelH / 2;
+            ctx.fillStyle = "#f6cf95";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 54, 0, Math.PI * 2);
+            ctx.fill();
+            if (centerRobotImg.complete && centerRobotImg.naturalWidth !== 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, 50, 0, Math.PI * 2);
+                ctx.clip();
+                drawCoverImage(centerRobotImg, cx - 50, cy - 50, 100, 100);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = "#4f3422";
+                ctx.font = "10px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("ROBOT", cx, cy + 3);
+            }
+
+            ctx.fillStyle = "#5b3a28";
+            ctx.font = "bold 17px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(`${ROBOT_DISPLAY_NAME} 助手`, panelX + 140, panelY + 52);
+            ctx.font = "14px sans-serif";
+            ctx.fillText("原料配送中", panelX + 140, panelY + 79);
+        }
+
+        function getRemainingSecondsFloat() {
+            if (currentStage !== 'GAMING' || !startTime) return GAME_DURATION;
+            return clamp(GAME_DURATION - ((Date.now() - startTime) / 1000), 0, GAME_DURATION);
+        }
+
+        function getProgressRatio() {
+            if (currentStage === 'PRACTICE' || currentStage === 'COUNTDOWN' || currentStage === 'ALLOCATION') return 1;
+            return clamp(getRemainingSecondsFloat() / GAME_DURATION, 0, 1);
+        }
+
+        function drawQuantityWheel(cx, cy, radius, rotation, finalValue, label, accentColor, phase) {
+            const settled = phase === "settled";
+            const values = WHEEL_VALUES;
+            const segmentAngle = Math.PI * 2 / values.length;
+            values.forEach((value, index) => {
+                const start = -Math.PI / 2 - segmentAngle / 2 + index * segmentAngle + rotation;
+                const end = start + segmentAngle;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, start, end);
+                ctx.closePath();
+                ctx.fillStyle = index % 2 === 0 ? accentColor : "#fff0c7";
+                ctx.fill();
+                ctx.strokeStyle = "#6f4a33";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                const textAngle = start + segmentAngle / 2;
+                const tx = cx + Math.cos(textAngle) * radius * 0.68;
+                const ty = cy + Math.sin(textAngle) * radius * 0.68;
+                ctx.fillStyle = "#4f3422";
+                ctx.font = "bold 17px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(value, tx, ty);
+            });
+
+            ctx.fillStyle = "#fff9ea";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#6f4a33";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.fillStyle = "#4f3422";
+            ctx.font = "bold 25px sans-serif";
+            ctx.fillText(settled ? finalValue : "?", cx, cy + 1);
+
+            ctx.fillStyle = "#e74c3c";
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - radius - 2);
+            ctx.lineTo(cx - 13, cy - radius - 24);
+            ctx.lineTo(cx + 13, cy - radius - 24);
+            ctx.closePath();
+            ctx.fill();
+
+            fillRoundedRect(cx - 78, cy + radius + 20, 156, 34, 7, "#fff9ea");
+            ctx.fillStyle = "#5b3a28";
+            ctx.font = "bold 16px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "alphabetic";
+            const phaseText = phase === "ready" ? "準備" : (settled ? finalValue : "轉動中");
+            ctx.fillText(`${label}：${phaseText}`, cx, cy + radius + 43);
+        }
+
+        function drawAllocationAnimation(timestamp) {
+            if (currentStage !== 'ALLOCATION' || !allocationState) return;
+            const elapsed = timestamp - allocationState.startedAt;
+            const spinElapsed = clamp(elapsed - allocationState.holdBefore, 0, allocationState.spinDuration);
+            const progress = spinElapsed / allocationState.spinDuration;
+            const phase = elapsed < allocationState.holdBefore
+                ? "ready"
+                : (elapsed < allocationState.holdBefore + allocationState.spinDuration ? "spinning" : "settled");
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const values = WHEEL_VALUES;
+            const segmentAngle = Math.PI * 2 / values.length;
+            const opponentIndex = values.indexOf(allocationState.distribution.opponent);
+            const participantIndex = values.indexOf(allocationState.distribution.participant);
+            const extraTurns = (1 - easeOut) * Math.PI * 10;
+            const opponentTarget = -opponentIndex * segmentAngle;
+            const participantTarget = -participantIndex * segmentAngle;
+            const opponentRotation = phase === "ready" ? 0 : opponentTarget + extraTurns;
+            const participantRotation = phase === "ready" ? 0 : participantTarget + extraTurns * 1.13;
+
+            ctx.save();
+            ctx.fillStyle = "rgba(35, 27, 23, 0.9)";
+            ctx.fillRect(0, topSectionHeight, canvas.width, gameSectionHeight);
+            ctx.fillStyle = "#fff9ea";
+            ctx.textAlign = "center";
+            ctx.font = "bold 28px sans-serif";
+            ctx.fillText(`第 ${currentRound} 回合地瓜分配轉盤`, midX, topSectionHeight + 52);
+
+            drawQuantityWheel(midX - 230, topSectionHeight + 230, 105, opponentRotation,
+                allocationState.distribution.opponent, "對手", "#8fd3c4", phase);
+            drawQuantityWheel(midX + 230, topSectionHeight + 230, 105, participantRotation,
+                allocationState.distribution.participant, "受試者", "#f2ad6f", phase);
+            ctx.restore();
         }
 
         // --- 核心渲染引擎 ---
@@ -764,59 +1785,53 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // 1. 頂部資訊區
-            ctx.fillStyle = "#2c3e50"; ctx.fillRect(0, 0, canvas.width, topSectionHeight);
-            
-            let bounceY = Math.sin(timestamp / 200) * 4;
-            ctx.save(); ctx.translate(canvas.width / 2, topSectionHeight / 2 - 20 + bounceY);
-            ctx.fillStyle = "#95a5a6"; ctx.fillRect(-25, -20, 50, 40);
-            ctx.fillStyle = (Math.floor(timestamp / 400) % 2 === 0) ? "#00ffcc" : "#00aa88";
-            ctx.beginPath(); ctx.arc(-10, -3, 5, 0, Math.PI*2); ctx.arc(10, -3, 5, 0, Math.PI*2); ctx.fill(); 
-            ctx.restore();
+            ctx.fillStyle = "#7fb7a9"; ctx.fillRect(0, 0, canvas.width, topSectionHeight);
+            ctx.fillStyle = "#fff1c7"; ctx.fillRect(0, 0, canvas.width, 10);
+            ctx.fillStyle = "#5b3a28";
+            ctx.font = "bold 18px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("地瓜廚房協作任務", midX, 31);
 
-            const barWidth = 300; const barHeight = 12;
-            const barX = canvas.width / 2 - barWidth / 2; const barY = 95;
-            ctx.fillStyle = "#34495e"; ctx.fillRect(barX, barY, barWidth, barHeight);
-            let progressRatio = timeLeft / GAME_DURATION;
-            if (currentStage === 'COUNTDOWN') progressRatio = 1; 
+            const barWidth = 360; const barHeight = 8;
+            const barX = canvas.width / 2 - barWidth / 2; const barY = 48;
+            fillRoundedRect(barX, barY, barWidth, barHeight, 6, "#fff9ea");
+            strokeRoundedRect(barX, barY, barWidth, barHeight, 6, "#5b3a28", 1.5);
+            
+            let progressRatio = getProgressRatio();
             const currentBarWidth = barWidth * progressRatio;
             ctx.fillStyle = (progressRatio > 0.5) ? "#2ecc71" : (progressRatio > 0.2 ? "#e67e22" : "#e74c3c");
-            ctx.fillRect(barX, barY, currentBarWidth, barHeight);
-
-            ctx.fillStyle = "#ecf0f1"; ctx.font = "14px sans-serif"; ctx.textAlign = "right";
-            ctx.fillText(`編號: ${participantId}`, canvas.width - 30, 40);
-            ctx.fillText(`回合: ${currentRound} / ${MAX_ROUNDS}`, canvas.width - 30, 70);
-            ctx.fillText(`剩餘: ${timeLeft} 秒`, canvas.width - 30, 100);
+            roundedRectPath(barX, barY, currentBarWidth, barHeight, 6);
+            ctx.fill();
+            ctx.fillStyle = "#fff9ea";
+            ctx.font = "bold 12px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText(currentStage === 'PRACTICE' ? "練習" : `回合 ${currentRound}/${MAX_ROUNDS}`, barX - 16, 57);
+            ctx.textAlign = "left";
+            ctx.fillText(currentStage === 'PRACTICE' ? "無時間限制" : `${timeLeft} 秒`, barX + barWidth + 16, 57);
 
             // 2. 戰場主區域分割
-            ctx.fillStyle = "#eaf2f8"; ctx.fillRect(0, topSectionHeight, midX, gameSectionHeight); 
-            ctx.fillStyle = "#fef9e7"; ctx.fillRect(midX, topSectionHeight, midX, gameSectionHeight); 
-
-            // ctx.strokeStyle = "#d5dbdb"; ctx.lineWidth = 1.5; ctx.setLineDash([6, 6]);
-            // ctx.beginPath(); ctx.moveTo(midX, topSectionHeight); ctx.lineTo(midX, canvas.height); ctx.stroke(); ctx.setLineDash([]);
-
-            ctx.fillStyle = leftZone.color; ctx.fillRect(leftZone.x, leftZone.y, leftZone.width, leftZone.height);
-            ctx.fillStyle = rightZone.color; ctx.fillRect(rightZone.x, rightZone.y, rightZone.width, rightZone.height);
-
-            ctx.fillStyle = "rgba(44, 62, 80, 0.8)"; ctx.fillRect(40, 530, 150, 40);
-            ctx.fillStyle = "#ffffff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(`左區剩餘球數: ${getLeftRemainingCount()}`, 115, 555);
-
-            ctx.fillStyle = "rgba(211, 84, 0, 0.8)"; ctx.fillRect( canvas.width - 190, 530, 150, 40);
-            ctx.fillStyle = "#ffffff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(`右區剩餘球數: ${getRightRemainingCount()}`, canvas.width - 115, 555);
+            drawKitchenFloor();
+            drawRobotWorkBarrier();
+            drawRawAreaWall();
+            drawServingZone(leftZone, "對手得分區", "#55b7a4");
+            drawServingZone(rightZone, "您的得分區", "#ef9b51");
+            drawRawBasket(rawBaskets.left, "對手原料籃", getLeftRawCount(), "#3f8f82");
+            drawRawBasket(rawBaskets.right, "玩家原料籃", getRightRawCount(), "#d97a34");
 
             ovens.forEach(o => {
-                ctx.fillStyle = "#ffffff"; ctx.fillRect(o.x, o.y, o.width, o.height);
-                ctx.strokeStyle = "#000000"; ctx.lineWidth = 3; ctx.strokeRect(o.x, o.y, o.width, o.height);
-                ctx.fillStyle = "#555555"; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
-                ctx.fillText(`烤箱 (${o.slots.length}/3)`, o.x + o.width/2, o.y - 6);
+                drawKitchenOven(o);
             });
 
-            ctx.fillStyle = "#2e4053"; ctx.font = "bold 24px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(`AI 隊得分: ${playerData.leftScore}`, midX / 2, topSectionHeight + 40);
-            ctx.fillText(`您的得分: ${playerData.rightScore}`, midX + (midX / 2), topSectionHeight + 40);
+            const opponentScoreFill = playerData.leftScore >= ROUND_TARGET_SCORE ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
+            const participantScoreFill = playerData.rightScore >= ROUND_TARGET_SCORE ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
+            fillRoundedRect(30, topSectionHeight + 8, 210, 38, 8, opponentScoreFill);
+            fillRoundedRect(canvas.width - 240, topSectionHeight + 8, 210, 38, 8, participantScoreFill);
+            ctx.fillStyle = "#5b3a28"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center";
+            ctx.fillText(`對手得分 ${playerData.leftScore} / 10`, 135, topSectionHeight + 34);
+            ctx.fillText(`您的得分 ${playerData.rightScore} / 10`, canvas.width - 135, topSectionHeight + 34);
 
             balls.forEach(ball => ball.draw());
+            drawPracticeCue(timestamp);
             
             bots.forEach(bot => bot.update()); 
             if (blackCatBot) blackCatBot.update();
@@ -830,12 +1845,56 @@
                 ctx.fillStyle = "#e74c3c"; ctx.font = "bold 90px sans-serif"; ctx.textAlign = "center";
                 ctx.fillText(countdownSec, midX, topSectionHeight + (gameSectionHeight/2) + 20);
             }
+            drawAllocationAnimation(timestamp);
+            if (currentStage !== 'ALLOCATION') drawBottomRobot();
+        }
+
+        function updateRoundClock() {
+            if (currentStage !== 'GAMING' || !startTime || roundEndHandled) return;
+            const remaining = getRemainingSecondsFloat();
+            timeLeft = Math.ceil(remaining);
+            if (remaining <= 0) {
+                roundEndReason = "timeout";
+                triggerRoundEnd();
+            }
+        }
+
+        function checkRoundTarget() {
+            if (currentStage !== 'GAMING' || roundEndHandled || roundTargetDialogPending || roundTargetReached) return;
+            if (playerData.playerDeliveredScore >= ROUND_TARGET_SCORE) {
+                roundTargetReached = true;
+                showRoundTargetDialog();
+            }
+        }
+
+        function checkRound2OpponentScarcity() {
+            if (currentStage !== 'GAMING' || currentRound !== 2 || round2ScarcityDialogShown) return;
+            const opponentHasUndeliveredPotato = balls.some(ball => ball.originSide === "left");
+            if (opponentHasUndeliveredPotato) {
+                round2OpponentScoredOutAt = null;
+                return;
+            }
+            if (round2OpponentScoredOutAt === null) {
+                round2OpponentScoredOutAt = Date.now();
+                return;
+            }
+            if (Date.now() - round2OpponentScoredOutAt >= 5000 && !roundTargetDialogPending) {
+                showRound2ScarcityDialog();
+            }
         }
 
         function updateGame() {
             if (currentStage === 'GAMING') {
+                updateRoundClock();
                 cat.update();
                 updateOvens(); // 每幀動態更新全域烤箱計時狀態
+                checkRound2OpponentScarcity();
+                checkRoundTarget();
+            } else if (currentStage === 'PRACTICE') {
+                cat.update();
+                updateOvens();
+                updatePracticeGuide();
+                checkPracticeTarget();
             }
         }
 
@@ -847,27 +1906,41 @@
 
         function runCanvasCountdown() {
             currentStage = 'COUNTDOWN'; countdownSec = 5;
-            let cdTimer = setInterval(() => {
+            clearInterval(gameTimer);
+            clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
                 countdownSec--;
                 if (countdownSec <= 0) {
-                    clearInterval(cdTimer); currentStage = 'GAMING';
-                    startTime = Date.now(); startExperimentTimer();
+                    clearInterval(countdownTimer);
+                    countdownTimer = null;
+                    currentStage = 'GAMING';
+                    startExperimentTimer();
                 }
             }, 1000);
         }
 
         function startExperimentTimer() {
+            clearInterval(gameTimer);
+            startTime = Date.now();
             timeLeft = GAME_DURATION;
-            gameTimer = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    timeLeft = 0; clearInterval(gameTimer); triggerRoundEnd();
-                }
-            }, 1000);
+            roundEndHandled = false;
+            roundTargetDialogPending = false;
+            roundEndReason = "timeout";
+            gameTimer = setInterval(updateRoundClock, 100);
         }
 
         function triggerRoundEnd() {
+            if (roundEndHandled) return;
+            roundEndHandled = true;
+            clearInterval(gameTimer);
+            timeLeft = 0;
             currentStage = 'GAMEOVER';
+            clearInterval(robotDialogTypeTimer);
+            document.getElementById("robotDialogLayer").style.display = "none";
+            roundTargetDialogPending = false;
+            robotDialogContext = null;
+            robotDialogMessages = [];
+            robotDialogMessageIndex = 0;
             document.getElementById("resRound").innerText = `${currentRound} / ${MAX_ROUNDS}`;
             document.getElementById("resLeftScore").innerText = playerData.leftScore;
             document.getElementById("resRightScore").innerText = playerData.rightScore;
@@ -877,12 +1950,15 @@
             nextBtn.style.display = "none"; surveyBtn.style.display = "none";
             
             if (currentRound >= MAX_ROUNDS) {
-                document.getElementById("modalTitle").innerText = "三回合完成";
-                document.getElementById("modalSub").innerText = "核心實驗階段已結束，請點擊下方按鈕進入問卷評估。";
+                document.getElementById("modalTitle").innerText = roundEndReason === "target" ? "第三回合達標完成" : "三回合完成";
+                document.getElementById("modalSub").innerText = "核心實驗階段已結束，請點擊下方按鈕完成最後問卷。";
                 surveyBtn.style.display = "block";
             } else {
-                document.getElementById("modalTitle").innerText = "本回合結束";
-                nextBtn.style.display = "block";
+                document.getElementById("modalTitle").innerText = roundEndReason === "target" ? "本回合達標" : "本回合結束";
+                document.getElementById("modalSub").innerText = roundEndReason === "target"
+                    ? "已完成本回合目標，請填寫本回合問卷後進入下一回合。"
+                    : "本輪數據已打包，請填寫本回合問卷後進入下一回合。";
+                surveyBtn.style.display = "block";
             }
             document.getElementById("gameOverOverlay").style.display = "flex";
             
@@ -893,114 +1969,352 @@
             let inputId = document.getElementById("participantId").value.trim();
             if(!inputId) { alert("請輸入參與者編號。"); return; }
             participantId = inputId;
+            if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
             document.getElementById("introLayer").style.display = "none";
-            document.getElementById("waitingLayer").style.display = "flex";
-            setTimeout(() => {
-                document.getElementById("waitingLayer").style.display = "none";
-                runCanvasCountdown();
-            }, 3000);
+            
+            currentStage = 'PRACTICE';
+            spawnPracticeObjects();
+            document.getElementById("practiceControlLayer").style.display = "flex";
         });
 
-        document.getElementById("nextRoundBtn").addEventListener("click", () => {
-            if (currentRound >= MAX_ROUNDS) return;
-            currentRound++;
-            playerData = { leftScore: 0, rightScore: 0 };
-            cat.holdingBall = null; cat.x = 900; cat.y = 420;
-            document.getElementById("gameOverOverlay").style.display = "none";
-            spawnExperimentObjects();
-            runCanvasCountdown();
+        document.getElementById("endPracticeBtn").addEventListener("click", () => {
+            if (playerData.rightScore < PRACTICE_TARGET_SCORE) return;
+            completePracticeTarget();
         });
 
-        document.getElementById("goToSurveyBtn").addEventListener("click", () => {
-            document.getElementById("gameOverOverlay").style.display = "none";
-            buildPsychologySurvey(); 
+        document.getElementById("confirmPracticeCompleteBtn").addEventListener("click", confirmPracticeComplete);
+
+        function goToSurveyPhase(mode = "postRound") {
+            surveyMode = mode;
+            currentStage = 'SURVEY';
+            const title = mode === "preRound"
+                ? `第 ${currentRound} / ${MAX_ROUNDS} 回合開始前問卷`
+                : `第 ${currentRound} / ${MAX_ROUNDS} 回合結束後問卷`;
+            document.getElementById("surveyLayerTitle").innerText = title;
+            document.getElementById("submitSurveyBtn").innerText = mode === "postRound" && currentRound >= MAX_ROUNDS
+                ? "提交最後問卷並結束"
+                : "提交問卷，進入下一階段";
+            buildPsychologySurvey();
+            surveyStartedAt = Date.now();
             document.getElementById("surveyLayer").style.display = "flex";
-        });
+        }
 
-        document.getElementById("downloadBtn").addEventListener("click", () => {
-            let csvContent = "data:text/csv;charset=utf-8,Round,PartID,LeftScore,RightScore\n";
-            csvContent += `${currentRound},${participantId},${playerData.leftScore},${playerData.rightScore}\n`;
-            let encodedUri = encodeURI(csvContent);
-            let link = document.createElement("a"); link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Backup_R${currentRound}_${participantId}.csv`);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        });
+        function extractSurveyQuestionsFromWorkbook(workbook) {
+            const firstSheetName = workbook.SheetNames[0];
+            if (!firstSheetName) return [];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], {
+                header: 1,
+                defval: ""
+            });
+            if (!rows.length) return [];
 
-        function buildPsychologySurvey() {
-            const container = document.getElementById("questionContainer");
-            container.innerHTML = ""; 
-            for (let i = 1; i <= 10; i++) {
-                let qBlock = document.createElement("div"); qBlock.className = "question-block";
-                let qText = document.createElement("div"); qText.className = "question-text";
-                qText.innerText = `Q${i}. 在本回合的行為操作中，您對於 AI 助手的合作流暢度與流暢體感評分？`;
-                qBlock.appendChild(qText);
-                let optGroup = document.createElement("div"); optGroup.className = "options-group";
-                for (let j = 1; j <= 7; j++) {
-                    let label = document.createElement("label"); label.className = "option-item";
-                    let radio = document.createElement("input"); radio.type = "radio"; radio.name = `question_${i}`; radio.value = j; radio.required = true;
-                    label.appendChild(radio); label.appendChild(document.createTextNode(`${j} 分`));
-                    optGroup.appendChild(label);
-                }
-                qBlock.appendChild(optGroup); container.appendChild(qBlock);
+            const headerAliases = ["題目", "問題", "question", "question text", "question_text"];
+            const firstRow = rows[0].map(value => String(value).trim().toLowerCase());
+            let questionColumn = firstRow.findIndex(value => headerAliases.includes(value));
+            let startRow = 1;
+            if (questionColumn < 0) {
+                questionColumn = 0;
+                startRow = headerAliases.includes(firstRow[0]) ? 1 : 0;
+            }
+
+            return rows
+                .slice(startRow)
+                .map(row => String(row[questionColumn] ?? "").trim())
+                .filter(question => question.length > 0);
+        }
+
+        async function importSurveyQuestionsFromArrayBuffer(arrayBuffer, sourceName) {
+            if (typeof XLSX === "undefined") throw new Error("Excel 解析程式未載入");
+            const workbook = XLSX.read(arrayBuffer, { type: "array" });
+            const importedQuestions = extractSurveyQuestionsFromWorkbook(workbook);
+            if (!importedQuestions.length) throw new Error("第一個工作表找不到題目");
+            surveyQuestions = importedQuestions;
+            surveyQuestionSource = sourceName;
+        }
+
+        async function tryLoadBundledSurveyQuestions() {
+            try {
+                const response = await fetch("survey_questions.xlsx", { cache: "no-store" });
+                if (!response.ok) return;
+                await importSurveyQuestionsFromArrayBuffer(await response.arrayBuffer(), "survey_questions.xlsx");
+            } catch (error) {
+                console.warn("使用內建問卷題目:", error.message);
             }
         }
 
-        document.getElementById("submitSurveyBtn").addEventListener("click", () => {
+        function collectSurveyAnswers() {
             let answers = [];
-            let allAnswered = true;
-
-            for (let i = 1; i <= 10; i++) {
+            for (let i = 1; i <= surveyQuestions.length; i++) {
                 let radios = document.getElementsByName(`question_${i}`);
                 let checkedValue = null;
-                for (let r of radios) {
-                    if (r.checked) { checkedValue = r.value; break; }
-                }
-                if (checkedValue === null) { allAnswered = false; break; }
+                for (let r of radios) { if (r.checked) { checkedValue = r.value; break; } }
+                if (checkedValue === null) return null;
                 answers.push(`Q${i}:${checkedValue}`);
             }
+            return answers;
+        }
 
-            if (!allAnswered) {
-                alert("❌ 請填寫完全部的心理量表題目後再提交！");
-                return;
-            }
-
-            let surveyPayload = answers.join("|");
-            console.log("📡 問卷終點數據串:", surveyPayload);
-
-            document.getElementById("surveyLayer").style.display = "none";
-
-            if (GOOGLE_FORM_URL.includes("XXXXXXXXXXXXX")) {
-                console.warn("⚠️ 目前為本地測試模式，未寫入實體 Google 表單連結。");
-                document.getElementById("thanksLayer").style.display = "flex";
-                return;
-            }
-
+        function uploadSurveyData(payload) {
+            if (GOOGLE_FORM_URL.includes("XXXXXXXXXXXXX")) return;
             let urlEncodedData = new URLSearchParams();
             urlEncodedData.append(ENTRY_PARTICIPANT_ID, participantId);
-            urlEncodedData.append(ENTRY_SURVEY_DATA, surveyPayload);
-
+            urlEncodedData.append(ENTRY_SURVEY_DATA, payload);
             fetch(GOOGLE_FORM_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: urlEncodedData
-            })
-            .then(() => {
-                document.getElementById("thanksLayer").style.display = "flex";
-            })
-            .catch((err) => {
-                console.error("上傳失敗:", err);
-                document.getElementById("thanksLayer").style.display = "flex";
-            });
+            }).catch(err => console.error("問卷上傳失敗:", err));
+        }
+
+        function finishExperiment() {
+            currentStage = 'THANKS';
+            document.getElementById("surveyLayer").style.display = "none";
+            document.getElementById("gameOverOverlay").style.display = "none";
+            document.getElementById("thanksLayer").style.display = "flex";
+        }
+
+        function getPreGameWaitSeconds(responseSeconds) {
+            if (!Number.isFinite(responseSeconds) || responseSeconds >= 150) return 0;
+            const t = Math.max(0, responseSeconds);
+            const randomFactor = 0.6 + Math.random() * 0.4;
+            return Math.min((150 - t) * randomFactor, 30);
+        }
+
+        function getRoundStartLabel(round) {
+            return ["第一回合開始", "第二回合開始", "第三回合開始"][round - 1] || `第 ${round} 回合開始`;
+        }
+
+        function showWaitingThenStartRound() {
+            const waitLayer = document.getElementById("waitingLayer");
+            const waitText = document.getElementById("waitingLayerText");
+            waitLayer.style.display = "flex";
+            currentStage = 'WAITING';
+            clearTimeout(waitingTimer);
+            const waitSeconds = getPreGameWaitSeconds(lastSurveyResponseSeconds);
+
+            const showProcessingThenStart = () => {
+                waitText.innerText = "系統處理中，請稍候";
+                waitingTimer = setTimeout(() => {
+                    waitText.innerText = getRoundStartLabel(currentRound);
+                    waitingTimer = setTimeout(() => {
+                        waitingTimer = null;
+                        waitLayer.style.display = "none";
+                        startAllocationAnimation();
+                    }, 1200);
+                }, 1000);
+            };
+
+            if (waitSeconds > 0) {
+                waitText.innerText = "其他玩家正在填寫問卷，請稍候";
+                waitingTimer = setTimeout(showProcessingThenStart, waitSeconds * 1000);
+            } else {
+                showProcessingThenStart();
+            }
+        }
+
+        function openRobotDialogSequence(messages, context) {
+            if (roundTargetDialogPending || currentStage !== 'GAMING') return false;
+            roundTargetDialogPending = true;
+            robotDialogContext = context;
+            robotDialogMessages = messages;
+            robotDialogMessageIndex = 0;
+            const layer = document.getElementById("robotDialogLayer");
+            const portrait = document.getElementById("robotDialogPortrait");
+            const name = document.getElementById("robotDialogName");
+            const primaryBtn = document.getElementById("helpOtherTeamBtn");
+            const secondaryBtn = document.getElementById("focusOwnTeamBtn");
+            const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
+            portrait.src = robot.image;
+            name.innerText = ROBOT_DISPLAY_NAME;
+            layer.style.display = "block";
+            primaryBtn.style.display = "inline-block";
+            secondaryBtn.style.display = "none";
+            primaryBtn.innerText = "OK";
+            primaryBtn.dataset.action = "ok";
+            typeRobotDialogText(robotDialogMessages[0]);
+            return true;
+        }
+
+        function showRoundTargetDialog() {
+            openRobotDialogSequence([
+                "太好了! 我們達到可以獲得報酬的標準了!",
+                "現在可以繼續遊戲，完成越多烤地瓜可以獲得越多參與獎勵，我們一起努力吧！"
+            ], "target");
+        }
+
+        function showRound2ScarcityDialog() {
+            const opened = openRobotDialogSequence([
+                "我偷偷觀察他們的進度，發現他們有一陣子沒有動作了。",
+                "是因為沒有地瓜了吧。那我們要分給他們一些地瓜嗎？",
+                "如果你想要分享，可以把烤好的地瓜拿到對方的得分區或是放在對方面前"
+            ], "round2_scarcity");
+            if (opened) round2ScarcityDialogShown = true;
+        }
+
+        function typeRobotDialogText(message) {
+            const text = document.getElementById("robotDialogText");
+            clearInterval(robotDialogTypeTimer);
+            text.innerText = "";
+            let cursor = 0;
+            robotDialogTypeTimer = setInterval(() => {
+                cursor++;
+                text.innerText = message.slice(0, cursor);
+                if (cursor >= message.length) clearInterval(robotDialogTypeTimer);
+            }, 24);
+        }
+
+        function resolveSecondRoundHelpDialog(decision) {
+            clearInterval(robotDialogTypeTimer);
+            sendActionPayloadToGoogleForm(`ROUND${currentRound}_${robotDialogContext}_DIALOG_STEP_${robotDialogMessageIndex + 1}_${decision}`);
+
+            if (robotDialogMessageIndex < robotDialogMessages.length - 1) {
+                robotDialogMessageIndex++;
+                typeRobotDialogText(robotDialogMessages[robotDialogMessageIndex]);
+                return;
+            }
+
+            if (robotDialogContext === "round2_scarcity") {
+                robotHelpDecision = "scarcity_help_prompt_seen";
+            } else if (robotDialogContext === "target" && robotHelpDecision === "not_asked") {
+                robotHelpDecision = "target_reward_prompt_seen";
+            }
+            document.getElementById("robotDialogLayer").style.display = "none";
+            roundTargetDialogPending = false;
+            robotDialogContext = null;
+            robotDialogMessages = [];
+            robotDialogMessageIndex = 0;
+        }
+
+        function startAllocationAnimation() {
+            const condition = assignExperimentCondition();
+            const distribution = getRoundDistribution();
+            currentStage = 'ALLOCATION';
+            const holdBefore = 900;
+            const spinDuration = 2500;
+            const holdAfter = 1000;
+            allocationState = {
+                startedAt: performance.now(),
+                holdBefore,
+                spinDuration,
+                holdAfter,
+                duration: holdBefore + spinDuration + holdAfter,
+                condition,
+                distribution
+            };
+            balls = [];
+            bots = [];
+            blackCatBot = null;
+            cat.holdingBall = null;
+            cat.x = playerStart.x;
+            cat.y = playerStart.y;
+            resetRoundData();
+            clearTimeout(allocationTimer);
+            allocationTimer = setTimeout(finishAllocationStage, allocationState.duration);
+        }
+
+        function finishAllocationStage() {
+            clearTimeout(allocationTimer);
+            allocationTimer = null;
+            if (currentStage !== 'ALLOCATION') return;
+            allocationState = null;
+            spawnExperimentObjects();
+            runCanvasCountdown();
+        }
+
+        document.getElementById("submitSurveyBtn").addEventListener("click", () => {
+            const answers = collectSurveyAnswers();
+            if (!answers) {
+                alert("請填寫完全部題目後再提交。");
+                return;
+            }
+
+            if (surveyStartedAt !== null) {
+                lastSurveyResponseSeconds = Math.max(0, (Date.now() - surveyStartedAt) / 1000);
+                surveyStartedAt = null;
+            }
+
+            const conditionId = experimentCondition ? experimentCondition.id : "unassigned";
+            const surveyPayload = `Round_${currentRound}|Mode:${surveyMode}|Condition:${conditionId}|QuestionSource:${surveyQuestionSource}|HelpDecision:${robotHelpDecision}|` + answers.join("|");
+            console.log(`問卷數據串:`, surveyPayload);
+            uploadSurveyData(surveyPayload);
+
+            document.getElementById("surveyLayer").style.display = "none";
+            if (surveyMode === "postRound" && currentRound >= MAX_ROUNDS) {
+                finishExperiment();
+                return;
+            }
+            if (surveyMode === "postRound") currentRound++;
+            showWaitingThenStartRound();
         });
 
+        document.getElementById("nextRoundBtn").addEventListener("click", () => {
+            document.getElementById("gameOverOverlay").style.display = "none";
+            goToSurveyPhase("postRound");
+        });
+
+        document.getElementById("goToSurveyBtn").addEventListener("click", () => {
+            document.getElementById("gameOverOverlay").style.display = "none";
+            goToSurveyPhase("postRound");
+        });
+
+        document.getElementById("helpOtherTeamBtn").addEventListener("click", () => {
+            const action = document.getElementById("helpOtherTeamBtn").dataset.action || "continue";
+            resolveSecondRoundHelpDialog(action);
+        });
+
+        document.getElementById("focusOwnTeamBtn").addEventListener("click", () => {
+            const action = document.getElementById("focusOwnTeamBtn").dataset.action || "focus_own_team";
+            resolveSecondRoundHelpDialog(action);
+        });
+
+        function buildPsychologySurvey() {
+            const container = document.getElementById("questionContainer");
+            container.innerHTML = "";
+            surveyQuestions.forEach((question, index) => {
+                const questionNumber = index + 1;
+                let qBlock = document.createElement("div"); qBlock.className = "question-block";
+                let qText = document.createElement("div"); qText.className = "question-text";
+                qText.innerText = `Q${questionNumber}. ${question}`;
+                qBlock.appendChild(qText);
+                let optGroup = document.createElement("div"); optGroup.className = "options-group";
+                for (let j = 1; j <= 7; j++) {
+                    let label = document.createElement("label"); label.className = "option-item";
+                    let radio = document.createElement("input"); radio.type = "radio"; radio.name = `question_${questionNumber}`; radio.value = j; radio.required = true;
+                    const anchor = j === 1 ? "非常不同意" : (j === 7 ? "非常同意" : "分");
+                    label.appendChild(radio); label.appendChild(document.createTextNode(`${j} ${anchor}`));
+                    optGroup.appendChild(label);
+                }
+                qBlock.appendChild(optGroup); container.appendChild(qBlock);
+            });
+        }
+
         window.addEventListener("keydown", e => {
-            if (e.code in keys) { e.preventDefault(); keys[e.code] = true; }
-            if (e.code === "Space" && currentStage === 'GAMING') { handlePlayerAction(); }
+            if (e.code in keys) {
+                e.preventDefault();
+                keys[e.code] = true;
+                if (e.code === "ArrowLeft" || e.code === "ArrowRight") playerMovementAxis = "x";
+                if (e.code === "ArrowUp" || e.code === "ArrowDown") playerMovementAxis = "y";
+            }
+            if (e.code === "Space" && (currentStage === 'GAMING' || currentStage === 'PRACTICE')) { handlePlayerAction(); }
+            if (e.code === "Enter" && currentStage === 'PRACTICE_COMPLETE') confirmPracticeComplete();
+            else if (e.code === "Enter" && roundTargetDialogPending) resolveSecondRoundHelpDialog("ok");
         });
         window.addEventListener("keyup", e => { if (e.code in keys) { e.preventDefault(); keys[e.code] = false; } });
 
-        spawnExperimentObjects();
+        const practiceGuideImage = document.getElementById("practiceGuideImage");
+        const syncPracticeGuideImage = () => {
+            const hasImage = practiceGuideImage.complete && practiceGuideImage.naturalWidth > 0;
+            practiceGuideImage.style.display = hasImage ? "block" : "none";
+            document.querySelector(".practice-copy").style.display = hasImage ? "none" : "block";
+        };
+        practiceGuideImage.addEventListener("load", syncPracticeGuideImage);
+        practiceGuideImage.addEventListener("error", syncPracticeGuideImage);
+        if (practiceGuideImage.complete) syncPracticeGuideImage();
+
+        tryLoadBundledSurveyQuestions();
         requestAnimationFrame(mainLoop);
     </script>
 </body>
