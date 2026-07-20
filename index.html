@@ -41,7 +41,7 @@
         }
         .intro-robot-role p { flex: 1; margin: 0; }
         .intro-robot-role img {
-            width: 88px; height: 88px; flex: 0 0 88px; object-fit: cover;
+            width: 108px; height: 108px; flex: 0 0 108px; object-fit: cover;
             border-radius: 50%; border: 3px solid #f8c471;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
         }
@@ -54,6 +54,7 @@
             height: 25%; background-color: #2c3e50; display: flex;
             flex-direction: column; align-items: center; justify-content: center; gap: 8px;
         }
+        #pairingHint { display: none; color: #f8c471; font-size: 20px; font-weight: bold; letter-spacing: 0; }
         .input-group { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; width: 100%; }
         .input-group input {
             padding: 6px 10px; font-size: 15px; border-radius: 6px; border: none; width: 200px; text-align: center;
@@ -109,7 +110,7 @@
             background: rgba(12, 18, 28, 0.42);
         }
         .gal-character {
-            position: absolute; left: 50%; bottom: 172px; width: 240px; height: 300px;
+            position: absolute; left: 50%; bottom: 172px; width: 310px; height: 360px;
             transform: translateX(-50%);
             border-radius: 8px; overflow: hidden;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
@@ -120,7 +121,7 @@
         }
         .gal-dialog-box {
             position: absolute; left: 46px; right: 46px; bottom: 34px;
-            min-height: 150px; box-sizing: border-box;
+            min-height: 156px; box-sizing: border-box;
             padding: 28px 34px 24px;
             background: rgba(16, 24, 39, 0.94);
             border: 2px solid rgba(248, 196, 113, 0.86);
@@ -168,12 +169,27 @@
         }
         #practiceStepText {
             color: #ffffff; font-size: 19px; line-height: 1.65;
+            white-space: pre-line;
         }
         #endPracticeBtn:disabled {
             background-color: #6b7280; cursor: not-allowed; opacity: 0.72;
         }
         #practiceGuideImage {
             display: none; width: 100%; max-height: 118px; object-fit: contain;
+        }
+
+        #idleReminderLayer {
+            position: absolute; inset: 0; display: none; z-index: 255;
+            align-items: center; justify-content: center; pointer-events: none;
+            background: rgba(18, 24, 38, 0.28);
+        }
+        .idle-reminder-box {
+            width: min(620px, 84%); box-sizing: border-box; text-align: center;
+            padding: 28px 34px; border-radius: 8px;
+            background: rgba(16, 24, 39, 0.96);
+            border: 2px solid rgba(248, 196, 113, 0.9);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.46);
+            color: #ffffff; font-size: 24px; line-height: 1.6; font-weight: bold;
         }
 
         #practiceCompleteLayer {
@@ -216,10 +232,14 @@
         <div id="practiceControlLayer">
             <img id="practiceGuideImage" src="practice_guide.png" alt="練習操作說明">
             <div class="practice-copy">
-                <div id="practiceStepBadge">練習目標 0 / 10</div>
-                <div id="practiceStepText">請等待機器人送入原料，拿起烤好的黃色地瓜並送到上方橘色得分區。</div>
+                <div id="practiceStepBadge">練習目標 0 / 5</div>
+                <div id="practiceStepText">這是試玩階段。請等待AI助手將原料放入烤箱；地瓜烤好後會留在烤箱內，請靠近烤箱按 Space 拿起，再送到上方橘色得分區。</div>
             </div>
             <button class="btn" id="endPracticeBtn" style="background-color: #e67e22;" disabled>完成練習，進入第一回合</button>
+        </div>
+
+        <div id="idleReminderLayer">
+            <div class="idle-reminder-box">您已閒置1分鐘，請繼續實驗。若需中途退出請聯繫研究人員</div>
         </div>
 
         <div id="practiceCompleteLayer">
@@ -232,18 +252,18 @@
         
         <div id="introLayer">
             <div class="intro-top">
-                <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">協作搬運實驗：地瓜烘烤任務</h2>
+                <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">協作實驗：地瓜烘烤任務</h2>
                 <div class="intro-instructions">
-                    <p>您好！這是一個烤地瓜的遊戲，在這個遊戲當中，請您盡可能和機器人合作，在時間內完成最多烤地瓜。</p>
+                    <p>您好！這是一個烤地瓜的遊戲，在這個遊戲當中，請您盡可能和AI助手合作，在時間內完成最多烤地瓜。</p>
                     <p>您的任務為操作右方畫面中的人物，將籃子裡的地瓜放在烤盤上。</p>
                     <div class="intro-robot-role">
-                        <p>在遊戲的中間下方是機器人夥伴，他會操作右方畫面中的另一個人物將烤好的地瓜送上窗台。在遊戲中你們要合作完成這個任務，他在遊戲中的角色是</p>
-                        <img id="introRobotImage" src="direct_happy.jpg" alt="遊戲中的機器人夥伴">
+                        <p>在遊戲的中間下方是AI助手，他會操作右方畫面中的另一個人物將烤好的地瓜送上窗台。在遊戲中你們要合作完成這個任務，他在遊戲中的角色是</p>
+                        <img id="introRobotImage" src="direct_happy.jpg" alt="遊戲中的AI助手">
                     </div>
-                    <p>左方畫面則是其他與您連線的玩家，他們的任務也是在時間內盡可能完成最多烤地瓜。</p>
+                    <p>左方畫面則是另外一組與您連線的玩家，他們的任務也是在時間內盡可能完成最多烤地瓜。</p>
                     <p>完成的地瓜數量（得分）將會呈現在上方。</p>
                     <p><strong>每回合完成 10 顆烤地瓜，就能達到獲得報酬的標準；超過 10 顆後，完成越多烤地瓜，可以獲得越多參與獎勵。</strong></p>
-                    <p>如果其他玩家缺少地瓜，您也可以把烤好的地瓜送到對方的得分區或放在對方面前，幫助他們繼續完成任務。</p>
+                    <p>如果另外一組玩家缺少地瓜，您也可以把烤好的地瓜送到另外一組玩家的得分區或放在他們面前，幫助他們繼續完成任務。</p>
                     <div class="intro-operation">
                         <p><strong>操作方法為：</strong></p>
                         <p>使用按鍵的上、下、左、右來進行移動</p>
@@ -257,6 +277,7 @@
                     <label for="participantId">請輸入您的參與者編號 (Participant ID):</label>
                     <input type="text" id="participantId" placeholder="例如: SUB_001" autocomplete="off">
                 </div>
+                <div id="pairingHint">配對中...</div>
                 <button class="btn" id="startIntroBtn">確認並進入操作練習</button>
             </div>
         </div>
@@ -267,10 +288,10 @@
 
         <div id="robotDialogLayer">
             <div class="gal-character">
-                <img id="robotDialogPortrait" src="direct_happy.jpg" alt="Robot">
+                <img id="robotDialogPortrait" src="direct_happy.jpg" alt="AI助手">
             </div>
             <div class="gal-dialog-box">
-                <div class="gal-nameplate" id="robotDialogName">Robot</div>
+                <div class="gal-nameplate" id="robotDialogName">AI助手</div>
                 <div id="robotDialogText"></div>
                 <div class="gal-choices">
                     <button type="button" class="gal-choice primary" id="helpOtherTeamBtn">OK</button>
@@ -285,7 +306,7 @@
                 <p id="modalSub">正在打包並上傳您的行為數據...</p>
                 <div class="stats-container">
                     <div class="stats-item"><span>結束回合 (Finished Round):</span><span id="resRound" class="stats-val">1 / 3</span></div>
-                    <div class="stats-item"><span>對手得分:</span><span id="resLeftScore" class="stats-val">0</span></div>
+                    <div class="stats-item"><span>另外一組玩家得分:</span><span id="resLeftScore" class="stats-val">0</span></div>
                     <div class="stats-item"><span>您的得分:</span><span id="resRightScore" class="stats-val">0</span></div>
                 </div>
                 
@@ -305,10 +326,11 @@
         </div>
 
         <div id="thanksLayer">
-            <h1 style="color: #2ecc71; font-size: 42px; margin-bottom: 15px;">🎉 實驗已圓滿結束</h1>
+            <h1 style="color: #2ecc71; font-size: 42px; margin-bottom: 15px;">實驗已圓滿結束</h1>
             <p style="font-size: 20px; color: #f8fafc; max-width: 680px; line-height: 1.7;">
                 感謝您的參與！請將此完成畫面截圖，回傳至實驗者提供的聯絡信箱，並等待實驗者後續聯繫。
             </p>
+            <p style="font-size: 18px; color: #f8c471; margin-top: 10px;">請按 Esc 鍵離開全螢幕。</p>
         </div>
     </div>
 
@@ -323,7 +345,7 @@
         const ENTRY_SURVEY_DATA = "entry.1500336990";    // 問卷回答數據
 
         const CONDITION_ASSIGNMENT_MODE = "participantHash"; // 可改為 "random"
-        const ROBOT_DISPLAY_NAME = "Robot"; // 待確認正式名稱
+        const ROBOT_DISPLAY_NAME = "AI助手";
         const ROBOT_CONDITIONS = [
             { id: "direct_happy", label: "直視 / 正向", image: "direct_happy.jpg" },
             { id: "direct_neutral", label: "直視 / 中性", image: "direct_neutral.jpg" },
@@ -335,32 +357,62 @@
             2: { id: "round_2", opponent: 10, participant: 40 },
             3: { id: "round_3", opponent: 12, participant: 45 }
         };
-        const WHEEL_VALUES = [...new Set(
-            Object.values(ROUND_DISTRIBUTIONS).flatMap(({ opponent, participant }) => [opponent, participant])
-        )].sort((a, b) => a - b);
+        const WHEEL_VALUES = Array.from({ length: 60 }, (_, index) => index + 1);
+        const HUMAN_AVATAR_THEMES = [
+            {
+                participant: { shirt: "#f28c45", pants: "#416f9f", hair: "#4d3328", skin: "#ffd1a8", accent: "#ef9b51" },
+                other: { shirt: "#55b7a4", pants: "#7666b5", hair: "#3d3029", skin: "#ffd1a8", accent: "#55b7a4" },
+                participantRobot: "#e69545",
+                otherRobot: "#1abc9c"
+            },
+            {
+                participant: { shirt: "#55b7a4", pants: "#7666b5", hair: "#3d3029", skin: "#ffd1a8", accent: "#55b7a4" },
+                other: { shirt: "#f28c45", pants: "#416f9f", hair: "#4d3328", skin: "#ffd1a8", accent: "#ef9b51" },
+                participantRobot: "#1abc9c",
+                otherRobot: "#e69545"
+            }
+        ];
+        let avatarThemeIndex = 0;
+        const ROBOT_EVALUATION_QUESTIONS = [
+            "AI助手在本回合中讓我覺得可靠。",
+            "AI助手的協助符合任務需求。",
+            "AI助手在適當時機提供提示。",
+            "我覺得AI助手是一位合作夥伴。",
+            "我願意在後續任務中繼續與AI助手合作。"
+        ];
         const DEFAULT_SURVEY_QUESTIONS = [
             "我能清楚理解本回合的目標與下一步操作。",
-            "機器人助手的行為讓我覺得可預測。",
-            "機器人提示或表情有幫助我理解目前狀態。",
+            "AI助手的行為讓我覺得可預測。",
+            "AI助手提示或表情有幫助我理解目前狀態。",
             "本回合的時間壓力是可以負荷的。",
             "地瓜數量分配讓我覺得任務難度合理。",
             "我覺得自己能順利控制角色完成任務。",
-            "我信任機器人助手會穩定完成它的工作。",
-            "我在本回合中感受到與機器人協作。",
+            "我信任AI助手會穩定完成它的工作。",
+            "我在本回合中感受到與AI助手協作。",
             "本回合的操作流程流暢自然。",
             "我願意在下一回合繼續採用同樣的合作方式。"
         ];
-        let surveyQuestions = [...DEFAULT_SURVEY_QUESTIONS];
+        function mergeSurveyQuestionSets(baseQuestions, appendQuestions) {
+            const seen = new Set();
+            return [...baseQuestions, ...appendQuestions]
+                .map(question => String(question).trim())
+                .filter(question => {
+                    if (!question || seen.has(question)) return false;
+                    seen.add(question);
+                    return true;
+                });
+        }
+        let surveyQuestions = mergeSurveyQuestionSets(DEFAULT_SURVEY_QUESTIONS, ROBOT_EVALUATION_QUESTIONS);
 
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
         const GAME_DURATION = 180;
         const MAX_ROUNDS = 3; 
-        const PRACTICE_TARGET_SCORE = 10;
+        const PRACTICE_TARGET_SCORE = 5;
         const ROUND_TARGET_SCORE = 10;
         const PRACTICE_RAW_COUNT = 18;
-        const OVEN_CAPACITY = 3;
+        const OVEN_CAPACITY = 4;
         const COOK_DURATION_MS = 5000;
         const CAT_SPEED = 4.5;
         const BOT_SPEED = 2.6;
@@ -397,6 +449,8 @@
         let round2ScarcityDialogShown = false;
         let donatedPotatoes = 0;
         let surveyQuestionSource = "built_in";
+        let lastParticipantActivityAt = Date.now();
+        let idleReminderVisible = false;
 
         let playerData = {
             gameDuration: GAME_DURATION,
@@ -464,6 +518,140 @@
         const centerRobotImg = new Image();
         centerRobotImg.src = "direct_happy.jpg";
 
+        function getAvatarTheme() {
+            return HUMAN_AVATAR_THEMES[avatarThemeIndex] || HUMAN_AVATAR_THEMES[0];
+        }
+
+        function assignAvatarTheme(seed) {
+            avatarThemeIndex = seed % HUMAN_AVATAR_THEMES.length;
+        }
+
+        function getHumanAppearance(role) {
+            const theme = getAvatarTheme();
+            return role === "participant" ? theme.participant : theme.other;
+        }
+
+        function getRobotAccent(role) {
+            const theme = getAvatarTheme();
+            return role === "participant" ? theme.participantRobot : theme.otherRobot;
+        }
+
+        function getParticipantDisplayName() {
+            return participantId && participantId !== "ANONYMOUS" ? participantId : "您";
+        }
+
+        function fitCanvasText(text, maxWidth, baseSize = 10, minSize = 8) {
+            let size = baseSize;
+            ctx.font = `bold ${size}px sans-serif`;
+            while (size > minSize && ctx.measureText(text).width > maxWidth) {
+                size--;
+                ctx.font = `bold ${size}px sans-serif`;
+            }
+            return size;
+        }
+
+        function drawEntityNameTag(x, y, label, accentColor, maxWidth = 118) {
+            const text = String(label);
+            const padding = 10;
+            const fontSize = fitCanvasText(text, maxWidth - padding * 2, 10, 7);
+            const width = Math.min(maxWidth, Math.max(64, ctx.measureText(text).width + padding * 2));
+            fillRoundedRect(x - width / 2, y, width, 20, 5, "rgba(79, 52, 34, 0.88)");
+            ctx.fillStyle = accentColor;
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "alphabetic";
+            ctx.fillText(text, x, y + 14);
+        }
+
+        function drawHeldSweetPotato(ball) {
+            const img = ball.status === "purple" ? imgPurple : imgYellow;
+            const size = 26;
+            ctx.save();
+            ctx.translate(0, -36);
+            ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
+            ctx.beginPath();
+            ctx.ellipse(0, 10, 13, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            if (img.complete && img.naturalWidth !== 0) {
+                ctx.drawImage(img, -size / 2, -size / 2, size, size);
+            } else {
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, 0, Math.PI * 2);
+                ctx.fillStyle = ball.status === "purple" ? "#9b59b6" : "#f1c40f";
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = "#fff9ea";
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawChibiHuman(worker, appearance, label) {
+            const bob = worker.moving ? Math.sin(worker.walkPhase) * 1.5 : 0;
+            const legSwing = worker.moving ? Math.sin(worker.walkPhase) * 3 : 0;
+            ctx.save();
+            ctx.translate(worker.x, worker.y + bob);
+            ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
+            ctx.beginPath();
+            ctx.ellipse(0, 18, 19, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "#4b3428";
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(-7, 8);
+            ctx.lineTo(-10 - legSwing * 0.25, 18);
+            ctx.moveTo(7, 8);
+            ctx.lineTo(10 + legSwing * 0.25, 18);
+            ctx.stroke();
+
+            fillRoundedRect(-15, -1, 30, 21, 9, appearance.shirt);
+            fillRoundedRect(-13, 11, 11, 13, 5, appearance.pants);
+            fillRoundedRect(2, 11, 11, 13, 5, appearance.pants);
+
+            ctx.strokeStyle = appearance.skin;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            if (worker.holdingBall) {
+                ctx.moveTo(-13, 4);
+                ctx.lineTo(-10, -27);
+                ctx.moveTo(13, 4);
+                ctx.lineTo(10, -27);
+            } else {
+                ctx.moveTo(-13, 4);
+                ctx.lineTo(-21, 13);
+                ctx.moveTo(13, 4);
+                ctx.lineTo(21, 13);
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = appearance.skin;
+            ctx.beginPath();
+            ctx.arc(0, -17, 17, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = appearance.hair;
+            ctx.beginPath();
+            ctx.arc(0, -22, 17, Math.PI, Math.PI * 2);
+            ctx.fill();
+            fillRoundedRect(-15, -31, 30, 13, 7, appearance.hair);
+            ctx.fillStyle = "#3e2a21";
+            ctx.beginPath();
+            ctx.arc(-6, -16, 2.2, 0, Math.PI * 2);
+            ctx.arc(6, -16, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#7a482f";
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.arc(0, -10, 4, 0.15, Math.PI - 0.15);
+            ctx.stroke();
+            fillRoundedRect(-15, 17, 30, 6, 3, appearance.accent);
+            if (worker.holdingBall) drawHeldSweetPotato(worker.holdingBall);
+            ctx.restore();
+
+            drawEntityNameTag(worker.x, worker.y + 28, label, "#ffffff", 128);
+        }
+
         // --- 物件類別定義 ---
         class Cat {
             constructor(x, y) {
@@ -497,97 +685,14 @@
                 this.y = clamp(this.y, topSectionHeight + this.radius, canvas.height - this.radius);
                 resolveKitchenWallCollision(this, prevX, prevY);
                 this.moving = this.x !== prevX || this.y !== prevY;
-                if (this.moving) this.walkPhase += WALK_PHASE_STEP;
+                if (this.moving) {
+                    this.walkPhase += WALK_PHASE_STEP;
+                    registerParticipantActivity();
+                }
                 if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y - 25; }
             }
             draw() {
-                const bob = this.moving ? Math.sin(this.walkPhase) * 1.5 : 0;
-                ctx.save();
-                ctx.translate(this.x, this.y + bob);
-                ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
-                ctx.beginPath();
-                ctx.ellipse(0, 16, 18, 6, 0, 0, Math.PI * 2);
-                ctx.fill();
-
-                if (useImages) {
-                    ctx.drawImage(catImg, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
-                } else {
-                    ctx.strokeStyle = "#c7652a";
-                    ctx.lineWidth = 5;
-                    ctx.lineCap = "round";
-                    ctx.beginPath();
-                    ctx.moveTo(-14, 10);
-                    ctx.bezierCurveTo(-27, 14, -28, 0, -21, -7);
-                    ctx.stroke();
-
-                    ctx.fillStyle = this.color;
-                    ctx.beginPath();
-                    ctx.moveTo(-16, -11);
-                    ctx.lineTo(-14, -29);
-                    ctx.lineTo(-3, -18);
-                    ctx.moveTo(16, -11);
-                    ctx.lineTo(14, -29);
-                    ctx.lineTo(3, -18);
-                    ctx.fill();
-                    ctx.fillStyle = "#f5b17e";
-                    ctx.beginPath();
-                    ctx.moveTo(-13, -15);
-                    ctx.lineTo(-12, -24);
-                    ctx.lineTo(-6, -18);
-                    ctx.moveTo(13, -15);
-                    ctx.lineTo(12, -24);
-                    ctx.lineTo(6, -18);
-                    ctx.fill();
-
-                    fillRoundedRect(-17, -19, 34, 38, 13, this.color);
-                    ctx.fillStyle = "#fff3d8";
-                    ctx.beginPath();
-                    ctx.ellipse(0, 6, 10, 8, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = "#3e2a21";
-                    ctx.beginPath();
-                    ctx.arc(-6, -5, 2.2, 0, Math.PI * 2);
-                    ctx.arc(6, -5, 2.2, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.moveTo(0, 1);
-                    ctx.lineTo(-3, 5);
-                    ctx.lineTo(3, 5);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.strokeStyle = "#7a482f";
-                    ctx.lineWidth = 1.4;
-                    ctx.beginPath();
-                    ctx.moveTo(-6, 6); ctx.lineTo(-16, 3);
-                    ctx.moveTo(-6, 9); ctx.lineTo(-16, 10);
-                    ctx.moveTo(6, 6); ctx.lineTo(16, 3);
-                    ctx.moveTo(6, 9); ctx.lineTo(16, 10);
-                    ctx.stroke();
-                    fillRoundedRect(-15, 13, 30, 6, 3, "#f6cf6f");
-                    ctx.fillStyle = "#c7652a";
-                    ctx.beginPath();
-                    ctx.ellipse(-9, 17, 6, 4, 0, 0, Math.PI * 2);
-                    ctx.ellipse(9, 17, 6, 4, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                ctx.strokeStyle = "#c7652a";
-                ctx.lineWidth = 5;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                if (this.holdingBall) {
-                    ctx.moveTo(-13, 4);
-                    ctx.lineTo(-7, -16);
-                    ctx.moveTo(13, 4);
-                    ctx.lineTo(7, -16);
-                } else {
-                    ctx.moveTo(-14, 3);
-                    ctx.lineTo(-19, 14);
-                    ctx.moveTo(14, 3);
-                    ctx.lineTo(19, 14);
-                }
-                ctx.stroke();
-                ctx.restore();
+                drawChibiHuman(this, getHumanAppearance("participant"), getParticipantDisplayName());
             }
         }
 
@@ -646,99 +751,82 @@
         }
 
         function drawOpponentDog(worker, accentColor, label) {
-            const bob = worker.moving ? Math.sin(worker.walkPhase) * 1.5 : 0;
-            ctx.save();
-            ctx.translate(worker.x, worker.y + bob);
-            ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
-            ctx.beginPath();
-            ctx.ellipse(0, 16, 18, 6, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = "#9a5d3b";
-            ctx.beginPath();
-            ctx.ellipse(-16, -10, 8, 14, -0.28, 0, Math.PI * 2);
-            ctx.ellipse(16, -10, 8, 14, 0.28, 0, Math.PI * 2);
-            ctx.fill();
-            fillRoundedRect(-17, -19, 34, 38, 13, "#c98250");
-            ctx.fillStyle = "#fff3d8";
-            ctx.beginPath();
-            ctx.ellipse(0, 6, 11, 9, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#3e2a21";
-            ctx.beginPath();
-            ctx.arc(-6, -5, 2.2, 0, Math.PI * 2);
-            ctx.arc(6, -5, 2.2, 0, Math.PI * 2);
-            ctx.arc(0, 3, 3.2, 0, Math.PI * 2);
-            ctx.fill();
-            fillRoundedRect(-15, 13, 30, 6, 3, accentColor);
-            ctx.strokeStyle = "#9a5d3b";
-            ctx.lineWidth = 5;
-            ctx.lineCap = "round";
-            ctx.beginPath();
-            if (worker.holdingBall) {
-                ctx.moveTo(-13, 4);
-                ctx.lineTo(-7, -16);
-                ctx.moveTo(13, 4);
-                ctx.lineTo(7, -16);
-            } else {
-                ctx.moveTo(-14, 3);
-                ctx.lineTo(-19, 14);
-                ctx.moveTo(14, 3);
-                ctx.lineTo(19, 14);
-            }
-            ctx.stroke();
-            ctx.restore();
-
-            fillRoundedRect(worker.x - 31, worker.y + 25, 62, 18, 5, "rgba(79, 52, 34, 0.86)");
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 10px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText(label, worker.x, worker.y + 37);
+            drawChibiHuman(worker, getHumanAppearance("other"), label);
         }
 
         function getRobotWorkAreaTop() {
             return robotWorkBarrier.y + robotWorkBarrier.height + 32;
         }
 
+        function getRobotAvatarExpression() {
+            const id = experimentCondition ? experimentCondition.robot.id : "direct_happy";
+            return {
+                gaze: id.includes("averted") ? "averted" : "direct",
+                mood: id.includes("neutral") ? "neutral" : "happy"
+            };
+        }
+
         function drawOpponentRobot(worker, accentColor, label) {
             if (worker.y < getRobotWorkAreaTop()) return;
             const bob = worker.moving ? Math.sin(worker.walkPhase) : 0;
+            const expression = getRobotAvatarExpression();
+            const eyeShift = expression.gaze === "averted" ? 2.4 : 0;
             ctx.save();
             ctx.translate(worker.x, worker.y + bob);
             ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
             ctx.beginPath();
-            ctx.ellipse(0, 16, 18, 6, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 12, 22, 7, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = "#5b3a28";
-            ctx.lineWidth = 3;
+
+            fillRoundedRect(-26, -37, 52, 48, 22, "#ffffff");
+            strokeRoundedRect(-26, -37, 52, 48, 22, "#d9e3e6", 2);
+            strokeRoundedRect(-22, -33, 44, 40, 18, accentColor, 2);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
             ctx.beginPath();
-            ctx.moveTo(0, -20);
-            ctx.lineTo(0, -26);
-            ctx.stroke();
-            ctx.fillStyle = "#f1c40f";
-            ctx.beginPath();
-            ctx.arc(0, -28, 3, 0, Math.PI * 2);
+            ctx.ellipse(-9, -31, 9, 4, -0.35, 0, Math.PI * 2);
             ctx.fill();
-            fillRoundedRect(-18, -20, 36, 39, 8, accentColor);
-            fillRoundedRect(-13, -14, 26, 21, 5, "#eaf7f4");
-            ctx.fillStyle = "#3e2a21";
+
+            fillRoundedRect(-14, -41, 28, 13, 7, "#f3f7f8");
+            strokeRoundedRect(-14, -41, 28, 13, 7, "#c8d2d6", 1.2);
+            ctx.fillStyle = "#20262b";
             ctx.beginPath();
-            ctx.arc(-6, -4, 2.5, 0, Math.PI * 2);
-            ctx.arc(6, -4, 2.5, 0, Math.PI * 2);
+            ctx.arc(0, -34, 2.2, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = "#3e2a21";
-            ctx.lineWidth = 2;
+
+            fillRoundedRect(-32, -22, 8, 21, 5, "#edf3f4");
+            fillRoundedRect(24, -22, 8, 21, 5, "#edf3f4");
+            strokeRoundedRect(-32, -22, 8, 21, 5, accentColor, 1.5);
+            strokeRoundedRect(24, -22, 8, 21, 5, accentColor, 1.5);
+
+            [-9, 9].forEach(eyeX => {
+                ctx.fillStyle = "#6ee7ff";
+                ctx.beginPath();
+                ctx.arc(eyeX, -17, 7.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#111827";
+                ctx.beginPath();
+                ctx.arc(eyeX + eyeShift, -17, 4.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                ctx.beginPath();
+                ctx.arc(eyeX + eyeShift + 1.4, -20, 1.6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.strokeStyle = "#1f2933";
+            ctx.lineWidth = 2.4;
+            ctx.lineCap = "round";
             ctx.beginPath();
-            ctx.moveTo(-5, 3);
-            ctx.lineTo(5, 3);
+            if (expression.mood === "neutral") {
+                ctx.moveTo(-5, -4);
+                ctx.lineTo(5, -4);
+            } else {
+                ctx.arc(0, -6, 6, 0.15, Math.PI - 0.15);
+            }
             ctx.stroke();
             ctx.restore();
 
-            fillRoundedRect(worker.x - 37, worker.y + 25, 74, 18, 5, "rgba(79, 52, 34, 0.86)");
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 9px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText(label, worker.x, worker.y + 37);
+            drawEntityNameTag(worker.x, worker.y + 20, label, "#ffffff", 92);
         }
 
         // ========================================================
@@ -746,7 +834,7 @@
         // ========================================================
         class LeftScoreBot {
             constructor(x, y) {
-                this.x = x; this.y = y; this.radius = 14; this.color = "#16a085"; 
+                this.x = x; this.y = y; this.radius = 14; this.color = getHumanAppearance("other").accent; 
                 this.holdingBall = null; this.state = "SEARCH_YELLOW";
                 this.heading = 0; this.currentSpeed = 0; this.walkPhase = 0; this.moving = false;
                 this.moveAxis = null; this.pauseFrames = 12 + Math.floor(Math.random() * 24);
@@ -800,6 +888,7 @@
                         if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
                             if (!targetYellow.isHeld) {
                                 this.holdingBall = targetYellow; targetYellow.isHeld = true;
+                                removeBallFromOven(targetYellow);
                                 targetYellow.outputOvenId = null;
                                 targetYellow.outputSlot = null;
                                 this.state = "GO_TO_ZONE";
@@ -844,7 +933,7 @@
             }
 
             draw() {
-                drawOpponentDog(this, this.color, "對手玩家");
+                drawOpponentDog(this, this.color, "另外一組玩家");
             }
         }
 
@@ -853,7 +942,7 @@
         // ========================================================
         class LeftCarrierBot {
             constructor(x, y) {
-                this.x = x; this.y = y; this.radius = 14; this.color = "#1abc9c"; 
+                this.x = x; this.y = y; this.radius = 15; this.color = getRobotAccent("other"); 
                 this.holdingBall = null; this.state = "SEARCH_PURPLE"; 
                 
                 this.delayTimer = 0;
@@ -950,9 +1039,7 @@
                                 this.holdingBall.x = targetOven.x + 12 + (targetOven.slots.length * 17);
                                 this.holdingBall.y = targetOven.y + targetOven.height / 2;
                                 
-                                this.holdingBall.cookProgress = 0;
-                                this.holdingBall.cookStartedAt = Date.now();
-                                targetOven.slots.push(this.holdingBall);
+                                placeBallInOven(this.holdingBall, targetOven);
                                 this.holdingBall = null;
                                 
                                 this.escapeTargetX = this.x; this.escapeTargetY = oy + 70; 
@@ -987,13 +1074,13 @@
             }
 
             draw() {
-                drawOpponentRobot(this, this.color, "對手原料助手");
+                drawOpponentRobot(this, this.color, ROBOT_DISPLAY_NAME);
             }
         }
 
         class RightBlackCatBot {
             constructor(x, y) {
-                this.x = x; this.y = y; this.radius = 15; this.color = "#e69545";
+                this.x = x; this.y = y; this.radius = 15; this.color = getRobotAccent("participant");
                 this.holdingBall = null; this.state = "SEARCH_PURPLE";
                 this.escapeTargetX = x; this.escapeTargetY = y;
                 this.walkPhase = 0; this.moving = false;
@@ -1039,9 +1126,7 @@
                             this.holdingBall.isHeld = false;
                             this.holdingBall.x = targetOven.x + 12 + (targetOven.slots.length * 17);
                             this.holdingBall.y = targetOven.y + targetOven.height / 2;
-                            this.holdingBall.cookProgress = 0;
-                            this.holdingBall.cookStartedAt = Date.now();
-                            targetOven.slots.push(this.holdingBall);
+                            placeBallInOven(this.holdingBall, targetOven);
                             this.holdingBall = null;
                             this.escapeTargetX = this.x;
                             this.escapeTargetY = targetOven.y + targetOven.height + 85;
@@ -1066,7 +1151,7 @@
                 this.y = clamp(this.y, getRobotWorkAreaTop(), canvas.height - 45);
             }
             draw() {
-                drawOpponentRobot(this, this.color, "您的原料助手");
+                drawOpponentRobot(this, this.color, ROBOT_DISPLAY_NAME);
             }
         }
 
@@ -1138,11 +1223,13 @@
             const seed = CONDITION_ASSIGNMENT_MODE === "random"
                 ? Math.floor(Math.random() * 1000000)
                 : hashString(participantId || "ANONYMOUS");
+            assignAvatarTheme(seed);
             const robot = ROBOT_CONDITIONS[seed % ROBOT_CONDITIONS.length];
             experimentCondition = {
                 id: `${robot.id}_fixed_round_distribution`,
                 robot,
-                distributionMode: "fixed_by_round"
+                distributionMode: "fixed_by_round",
+                avatarTheme: avatarThemeIndex
             };
             centerRobotImg.src = robot.image;
             playerData.condition = experimentCondition.id;
@@ -1178,6 +1265,39 @@
                 totalScore: 0,
                 condition: experimentCondition ? experimentCondition.id : "unassigned"
             };
+        }
+
+        function hideIdleReminder() {
+            idleReminderVisible = false;
+            document.getElementById("idleReminderLayer").style.display = "none";
+        }
+
+        function resetParticipantInactivity() {
+            lastParticipantActivityAt = Date.now();
+            hideIdleReminder();
+        }
+
+        function registerParticipantActivity() {
+            if (currentStage === 'GAMING' || currentStage === 'PRACTICE') {
+                resetParticipantInactivity();
+            }
+        }
+
+        function checkParticipantInactivity() {
+            if (currentStage !== 'GAMING' && currentStage !== 'PRACTICE') {
+                hideIdleReminder();
+                lastParticipantActivityAt = Date.now();
+                return;
+            }
+            if (roundTargetDialogPending) {
+                hideIdleReminder();
+                lastParticipantActivityAt = Date.now();
+                return;
+            }
+            if (!idleReminderVisible && Date.now() - lastParticipantActivityAt >= 60000) {
+                idleReminderVisible = true;
+                document.getElementById("idleReminderLayer").style.display = "flex";
+            }
         }
 
         function spawnSweetPotatoCluster(count, side) {
@@ -1222,12 +1342,49 @@
             cat.y = playerStart.y;
             spawnSweetPotatoCluster(PRACTICE_RAW_COUNT, "right");
             updatePracticeGuide(true);
+            resetParticipantInactivity();
+        }
+
+        function getContainingOven(ball) {
+            return ovens.find(o => o.slots.includes(ball)) || null;
+        }
+
+        function positionBallInOvenSlot(ball, oven) {
+            const slot = Math.max(0, oven.slots.indexOf(ball));
+            const spacing = oven.width / (OVEN_CAPACITY + 1);
+            ball.x = oven.x + spacing * (slot + 1);
+            ball.y = ball.status === "yellow" ? oven.y + 22 : oven.y + oven.height - 22;
+            ball.outputOvenId = oven.id;
+            ball.outputSlot = slot;
+        }
+
+        function compactOvenSlots(oven) {
+            oven.slots.forEach(ball => positionBallInOvenSlot(ball, oven));
+        }
+
+        function removeBallFromOven(ball) {
+            const oven = getContainingOven(ball);
+            if (!oven) return null;
+            const idx = oven.slots.indexOf(ball);
+            if (idx > -1) oven.slots.splice(idx, 1);
+            ball.outputOvenId = null;
+            ball.outputSlot = null;
+            compactOvenSlots(oven);
+            return oven;
+        }
+
+        function placeBallInOven(ball, oven) {
+            ball.isHeld = false;
+            ball.cookProgress = 0;
+            ball.cookStartedAt = Date.now();
+            oven.slots.push(ball);
+            positionBallInOvenSlot(ball, oven);
         }
 
         function getLeftRemainingCount() { return balls.filter(b => b.x < midX).length; }
         function getRightRemainingCount() { return balls.filter(b => b.x >= midX).length; }
-        function getLeftRawCount() { return balls.filter(b => b.x < midX && b.status === "purple").length; }
-        function getRightRawCount() { return balls.filter(b => b.x >= midX && b.status === "purple").length; }
+        function getLeftRawCount() { return balls.filter(b => b.x < midX && b.status === "purple" && !getContainingOven(b)).length; }
+        function getRightRawCount() { return balls.filter(b => b.x >= midX && b.status === "purple" && !getContainingOven(b)).length; }
 
         function updatePracticeGuide(forceRender = false) {
             if (currentStage !== 'PRACTICE' && !forceRender) return;
@@ -1235,23 +1392,27 @@
             const text = document.getElementById("practiceStepText");
             const endBtn = document.getElementById("endPracticeBtn");
             const score = Math.min(playerData.rightScore, PRACTICE_TARGET_SCORE);
-            const cookedOnGround = balls.some(b => !b.isHeld && b.status === "yellow" && !ovens.some(o => o.slots.includes(b)));
+            const cookedReady = balls.some(b => !b.isHeld && b.status === "yellow");
             const holdingCooked = cat.holdingBall && cat.holdingBall.status === "yellow";
             const cookingNow = ovens.some(o => o.side === "right" && o.slots.some(b => b.status === "purple"));
+            const freeMoveReminder = "\n\n您可以試著在畫面中自由移動，若您將地瓜放在另一位玩家的得分區，則是對方得分。\n另外，當您把烤好的地瓜放在另一位玩家的移動區域內時，對方也可以拿取您放置的地瓜。";
+            const maybeAddFreeMoveReminder = message => score >= 3 && !practiceTargetCompleted
+                ? message + freeMoveReminder
+                : message;
 
             badge.innerText = practiceTargetCompleted
                 ? "練習完成"
                 : `練習目標 ${score} / ${PRACTICE_TARGET_SCORE}`;
             if (practiceTargetCompleted) {
-                text.innerText = "已達成 10 顆目標，請確認後進入第一回合。";
+                text.innerText = `已達成 ${PRACTICE_TARGET_SCORE} 顆目標，請確認後進入第一回合。`;
             } else if (holdingCooked) {
-                text.innerText = "很好，請把手上的黃色熟地瓜送到上方橘色得分區，按 Space 放下得分。";
-            } else if (cookedOnGround) {
-                text.innerText = "有黃色熟地瓜出爐了。請靠近它按 Space 拿起，再送到上方橘色得分區。";
+                text.innerText = maybeAddFreeMoveReminder("很好，請把手上的黃色熟地瓜送到上方橘色得分區，按 Space 放下得分。");
+            } else if (cookedReady) {
+                text.innerText = maybeAddFreeMoveReminder("有黃色熟地瓜烤好了。請靠近烤箱按 Space 拿起，再送到上方橘色得分區。");
             } else if (cookingNow) {
-                text.innerText = "機器人正在送原料，烤箱正在加熱。請等待黃色熟地瓜從烤箱上方出爐。";
+                text.innerText = maybeAddFreeMoveReminder("AI助手正在送原料，烤箱正在加熱。請等待黃色熟地瓜烤好後留在烤箱內。");
             } else {
-                text.innerText = "請觀察橘金色機器人把紫色生地瓜送進烤箱；您的任務是把烤好的黃色地瓜送到上方橘色得分區。";
+                text.innerText = maybeAddFreeMoveReminder("請觀察AI助手把紫色生地瓜送進烤箱；您的任務是把烤好的黃色地瓜送到上方橘色得分區。");
             }
             endBtn.style.display = "none";
             endBtn.disabled = true;
@@ -1265,7 +1426,7 @@
             ctx.lineWidth = 5;
             ctx.setLineDash([10, 7]);
 
-            const cookedTargets = balls.filter(b => !b.isHeld && b.status === "yellow" && !ovens.some(o => o.slots.includes(b)));
+            const cookedTargets = balls.filter(b => !b.isHeld && b.status === "yellow");
             if (cat.holdingBall && cat.holdingBall.status === "yellow") {
                 ctx.strokeRect(rightZone.x - 8, rightZone.y - 8, rightZone.width + 16, rightZone.height + 16);
             } else if (cookedTargets.length > 0) {
@@ -1314,17 +1475,7 @@
         // 🔮 【核心統一區域】全域烤箱狀態輪詢更新 
         // ==========================================
         function placeCookedBallInOutputQueue(ball, oven) {
-            const usedSlots = new Set(
-                balls
-                    .filter(other => other !== ball && other.outputOvenId === oven.id && !other.isHeld)
-                    .map(other => other.outputSlot)
-            );
-            let slot = 0;
-            while (usedSlots.has(slot)) slot++;
-            ball.outputOvenId = oven.id;
-            ball.outputSlot = slot;
-            ball.x = oven.x + 16 + (slot % 4) * 26;
-            ball.y = oven.y - 24 - Math.floor(slot / 4) * 24;
+            positionBallInOvenSlot(ball, oven);
         }
 
         function updateOvens() {
@@ -1338,11 +1489,9 @@
                         
                         if (b.cookProgress >= 100) {
                             b.status = "yellow";
+                            b.cookProgress = 100;
+                            b.cookStartedAt = null;
                             placeCookedBallInOutputQueue(b, o);
-                            
-                            // 自烤箱插槽列表中移除，吐回大地圖原生 balls 列表中
-                            let idx = o.slots.indexOf(b);
-                            if (idx > -1) o.slots.splice(idx, 1);
                         }
                     }
                 });
@@ -1356,8 +1505,9 @@
             let rightCount = getRightRemainingCount();
             let totalScore = playerData.leftScore + playerData.rightScore;
             let conditionId = experimentCondition ? experimentCondition.id : "unassigned";
+            let avatarTheme = experimentCondition ? experimentCondition.avatarTheme : avatarThemeIndex;
 
-            let payload = `Round:${currentRound},Condition:${conditionId},HelpDecision:${robotHelpDecision},Time:${elapsed},X:${Math.round(cat.x)},Y:${Math.round(cat.y)},Act:${actionType},L_Score:${playerData.leftScore},R_Score:${playerData.rightScore},PlayerDeliveries:${playerData.playerDeliveredScore},TotalScore:${totalScore},R_BallLeft:${rightCount},L_BallLeft:${leftCount}`;
+            let payload = `Round:${currentRound},Condition:${conditionId},AvatarTheme:${avatarTheme},HelpDecision:${robotHelpDecision},Time:${elapsed},X:${Math.round(cat.x)},Y:${Math.round(cat.y)},Act:${actionType},L_Score:${playerData.leftScore},R_Score:${playerData.rightScore},PlayerDeliveries:${playerData.playerDeliveredScore},TotalScore:${totalScore},R_BallLeft:${rightCount},L_BallLeft:${leftCount}`;
             console.log("📡 行為追蹤串流:", payload);
 
             if (GOOGLE_FORM_URL.includes("XXXXXXXXXXXXX")) return;
@@ -1370,19 +1520,22 @@
 
         function handlePlayerAction() {
             if (currentStage !== 'GAMING' && currentStage !== 'PRACTICE') return;
+            registerParticipantActivity();
             let currentSide = (cat.x < midX) ? "left" : "right";
 
             if (!cat.holdingBall) {
                 let closestBall = null; let minDist = REACH_DISTANCE;
                 balls.forEach(ball => {
-                    let isInsideAnyOven = ovens.some(o => o.slots.includes(ball));
-                    if (!ball.isHeld && !isInsideAnyOven) {
+                    const containingOven = getContainingOven(ball);
+                    const canPickFromOven = containingOven && ball.status === "yellow";
+                    if (!ball.isHeld && (!containingOven || canPickFromOven)) {
                         let dist = Math.hypot(cat.x - ball.x, cat.y - ball.y);
                         if (dist < minDist) { minDist = dist; closestBall = ball; }
                     }
                 });
                 if (closestBall) {
                     cat.holdingBall = closestBall; closestBall.isHeld = true;
+                    removeBallFromOven(closestBall);
                     closestBall.outputOvenId = null;
                     closestBall.outputSlot = null;
                     currentPickupSide = currentSide; 
@@ -1437,11 +1590,7 @@
                         return;
                     }
                     
-                    b.x = insideOven.x + 12 + (insideOven.slots.length * 17);
-                    b.y = insideOven.y + insideOven.height / 2;
-                    b.cookProgress = 0;
-                    b.cookStartedAt = Date.now();
-                    insideOven.slots.push(b);
+                    placeBallInOven(b, insideOven);
                     
                     sendActionPayloadToGoogleForm(`${finalActionType}_PutToOven`);
                     return;
@@ -1572,11 +1721,11 @@
             }
 
             [midX / 2, midX + midX / 2].forEach(cx => {
-                fillRoundedRect(cx - 76, y + 5, 152, 22, 5, "#6f4a33");
+                fillRoundedRect(cx - 62, y + 5, 124, 22, 5, "#6f4a33");
                 ctx.fillStyle = "#fff4d8";
                 ctx.font = "bold 12px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText("機器人工作區｜請勿進入", cx, y + 20);
+                ctx.fillText("機器人工作區", cx, y + 20);
             });
         }
 
@@ -1618,12 +1767,13 @@
             ctx.arc(zone.x + zone.width / 2, zone.y + zone.height / 2 + 3, 14, 0, Math.PI * 2);
             ctx.fill();
 
-            const labelX = zone === leftZone ? zone.x - 105 : zone.x + zone.width + 10;
-            fillRoundedRect(labelX, zone.y + 25, 95, 26, 6, "#ffffff");
+            const labelWidth = zone === leftZone ? 128 : 102;
+            const labelX = zone === leftZone ? zone.x - labelWidth - 10 : zone.x + zone.width + 10;
+            fillRoundedRect(labelX, zone.y + 25, labelWidth, 26, 6, "#ffffff");
             ctx.fillStyle = "#6d4329";
             ctx.font = "bold 12px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText(label, labelX + 47.5, zone.y + 42);
+            ctx.fillText(label, labelX + labelWidth / 2, zone.y + 42);
         }
 
         function drawKitchenOven(o) {
@@ -1646,39 +1796,39 @@
         }
 
         function drawBottomRobot() {
-            const panelW = 310;
-            const panelH = 124;
+            const panelW = 360;
+            const panelH = 142;
             const panelX = midX - panelW / 2;
             const panelY = canvas.height - panelH - 10;
             fillRoundedRect(panelX, panelY, panelW, panelH, 10, "rgba(255, 249, 234, 0.96)");
             strokeRoundedRect(panelX, panelY, panelW, panelH, 10, "#8f5d3b", 3);
 
-            const cx = panelX + 70;
+            const cx = panelX + 82;
             const cy = panelY + panelH / 2;
             ctx.fillStyle = "#f6cf95";
             ctx.beginPath();
-            ctx.arc(cx, cy, 54, 0, Math.PI * 2);
+            ctx.arc(cx, cy, 64, 0, Math.PI * 2);
             ctx.fill();
             if (centerRobotImg.complete && centerRobotImg.naturalWidth !== 0) {
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(cx, cy, 50, 0, Math.PI * 2);
+                ctx.arc(cx, cy, 59, 0, Math.PI * 2);
                 ctx.clip();
-                drawCoverImage(centerRobotImg, cx - 50, cy - 50, 100, 100);
+                drawCoverImage(centerRobotImg, cx - 59, cy - 59, 118, 118);
                 ctx.restore();
             } else {
                 ctx.fillStyle = "#4f3422";
                 ctx.font = "10px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText("ROBOT", cx, cy + 3);
+                ctx.fillText("AI助手", cx, cy + 3);
             }
 
             ctx.fillStyle = "#5b3a28";
             ctx.font = "bold 17px sans-serif";
             ctx.textAlign = "left";
-            ctx.fillText(`${ROBOT_DISPLAY_NAME} 助手`, panelX + 140, panelY + 52);
+            ctx.fillText(ROBOT_DISPLAY_NAME, panelX + 165, panelY + 60);
             ctx.font = "14px sans-serif";
-            ctx.fillText("原料配送中", panelX + 140, panelY + 79);
+            ctx.fillText("原料配送中", panelX + 165, panelY + 88);
         }
 
         function getRemainingSecondsFloat() {
@@ -1705,17 +1855,21 @@
                 ctx.fillStyle = index % 2 === 0 ? accentColor : "#fff0c7";
                 ctx.fill();
                 ctx.strokeStyle = "#6f4a33";
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 0.7;
                 ctx.stroke();
 
                 const textAngle = start + segmentAngle / 2;
-                const tx = cx + Math.cos(textAngle) * radius * 0.68;
-                const ty = cy + Math.sin(textAngle) * radius * 0.68;
+                const tx = cx + Math.cos(textAngle) * radius * 0.73;
+                const ty = cy + Math.sin(textAngle) * radius * 0.73;
+                ctx.save();
+                ctx.translate(tx, ty);
+                ctx.rotate(textAngle + Math.PI / 2);
                 ctx.fillStyle = "#4f3422";
-                ctx.font = "bold 17px sans-serif";
+                ctx.font = "bold 7px sans-serif";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(value, tx, ty);
+                ctx.fillText(value, 0, 0);
+                ctx.restore();
             });
 
             ctx.fillStyle = "#fff9ea";
@@ -1739,7 +1893,7 @@
 
             fillRoundedRect(cx - 78, cy + radius + 20, 156, 34, 7, "#fff9ea");
             ctx.fillStyle = "#5b3a28";
-            ctx.font = "bold 16px sans-serif";
+            ctx.font = "bold 15px sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "alphabetic";
             const phaseText = phase === "ready" ? "準備" : (settled ? finalValue : "轉動中");
@@ -1774,9 +1928,9 @@
             ctx.fillText(`第 ${currentRound} 回合地瓜分配轉盤`, midX, topSectionHeight + 52);
 
             drawQuantityWheel(midX - 230, topSectionHeight + 230, 105, opponentRotation,
-                allocationState.distribution.opponent, "對手", "#8fd3c4", phase);
+                allocationState.distribution.opponent, "另外一組", "#8fd3c4", phase);
             drawQuantityWheel(midX + 230, topSectionHeight + 230, 105, participantRotation,
-                allocationState.distribution.participant, "受試者", "#f2ad6f", phase);
+                allocationState.distribution.participant, "您", "#f2ad6f", phase);
             ctx.restore();
         }
 
@@ -1813,22 +1967,23 @@
             drawKitchenFloor();
             drawRobotWorkBarrier();
             drawRawAreaWall();
-            drawServingZone(leftZone, "對手得分區", "#55b7a4");
+            drawServingZone(leftZone, "另外一組得分區", "#55b7a4");
             drawServingZone(rightZone, "您的得分區", "#ef9b51");
-            drawRawBasket(rawBaskets.left, "對手原料籃", getLeftRawCount(), "#3f8f82");
-            drawRawBasket(rawBaskets.right, "玩家原料籃", getRightRawCount(), "#d97a34");
+            drawRawBasket(rawBaskets.left, "另外一組原料籃", getLeftRawCount(), "#3f8f82");
+            drawRawBasket(rawBaskets.right, "您的原料籃", getRightRawCount(), "#d97a34");
 
             ovens.forEach(o => {
                 drawKitchenOven(o);
             });
 
-            const opponentScoreFill = playerData.leftScore >= ROUND_TARGET_SCORE ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
-            const participantScoreFill = playerData.rightScore >= ROUND_TARGET_SCORE ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
-            fillRoundedRect(30, topSectionHeight + 8, 210, 38, 8, opponentScoreFill);
-            fillRoundedRect(canvas.width - 240, topSectionHeight + 8, 210, 38, 8, participantScoreFill);
-            ctx.fillStyle = "#5b3a28"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(`對手得分 ${playerData.leftScore} / 10`, 135, topSectionHeight + 34);
-            ctx.fillText(`您的得分 ${playerData.rightScore} / 10`, canvas.width - 135, topSectionHeight + 34);
+            const displayTargetScore = currentStage === 'PRACTICE' ? PRACTICE_TARGET_SCORE : ROUND_TARGET_SCORE;
+            const opponentScoreFill = playerData.leftScore >= displayTargetScore ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
+            const participantScoreFill = playerData.rightScore >= displayTargetScore ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
+            fillRoundedRect(20, topSectionHeight + 8, 250, 38, 8, opponentScoreFill);
+            fillRoundedRect(canvas.width - 270, topSectionHeight + 8, 250, 38, 8, participantScoreFill);
+            ctx.fillStyle = "#5b3a28"; ctx.font = "bold 18px sans-serif"; ctx.textAlign = "center";
+            ctx.fillText(`另外一組得分 ${playerData.leftScore} / ${displayTargetScore}`, 145, topSectionHeight + 34);
+            ctx.fillText(`您的得分 ${playerData.rightScore} / ${displayTargetScore}`, canvas.width - 145, topSectionHeight + 34);
 
             balls.forEach(ball => ball.draw());
             drawPracticeCue(timestamp);
@@ -1890,11 +2045,15 @@
                 updateOvens(); // 每幀動態更新全域烤箱計時狀態
                 checkRound2OpponentScarcity();
                 checkRoundTarget();
+                checkParticipantInactivity();
             } else if (currentStage === 'PRACTICE') {
                 cat.update();
                 updateOvens();
                 updatePracticeGuide();
                 checkPracticeTarget();
+                checkParticipantInactivity();
+            } else {
+                checkParticipantInactivity();
             }
         }
 
@@ -1926,6 +2085,7 @@
             roundEndHandled = false;
             roundTargetDialogPending = false;
             roundEndReason = "timeout";
+            resetParticipantInactivity();
             gameTimer = setInterval(updateRoundClock, 100);
         }
 
@@ -1935,6 +2095,7 @@
             clearInterval(gameTimer);
             timeLeft = 0;
             currentStage = 'GAMEOVER';
+            hideIdleReminder();
             clearInterval(robotDialogTypeTimer);
             document.getElementById("robotDialogLayer").style.display = "none";
             roundTargetDialogPending = false;
@@ -1972,11 +2133,20 @@
             if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {});
             }
-            document.getElementById("introLayer").style.display = "none";
-            
-            currentStage = 'PRACTICE';
-            spawnPracticeObjects();
-            document.getElementById("practiceControlLayer").style.display = "flex";
+            assignExperimentCondition();
+            const startBtn = document.getElementById("startIntroBtn");
+            startBtn.disabled = true;
+            startBtn.innerText = "配對中...";
+            document.getElementById("pairingHint").style.display = "block";
+            setTimeout(() => {
+                document.getElementById("introLayer").style.display = "none";
+                currentStage = 'PRACTICE';
+                spawnPracticeObjects();
+                document.getElementById("practiceControlLayer").style.display = "flex";
+                startBtn.disabled = false;
+                startBtn.innerText = "確認並進入操作練習";
+                document.getElementById("pairingHint").style.display = "none";
+            }, 1200);
         });
 
         document.getElementById("endPracticeBtn").addEventListener("click", () => {
@@ -2030,8 +2200,8 @@
             const workbook = XLSX.read(arrayBuffer, { type: "array" });
             const importedQuestions = extractSurveyQuestionsFromWorkbook(workbook);
             if (!importedQuestions.length) throw new Error("第一個工作表找不到題目");
-            surveyQuestions = importedQuestions;
-            surveyQuestionSource = sourceName;
+            surveyQuestions = mergeSurveyQuestionSets(importedQuestions, ROBOT_EVALUATION_QUESTIONS);
+            surveyQuestionSource = `${sourceName}+robot_eval`;
         }
 
         async function tryLoadBundledSurveyQuestions() {
@@ -2117,6 +2287,7 @@
 
         function openRobotDialogSequence(messages, context) {
             if (roundTargetDialogPending || currentStage !== 'GAMING') return false;
+            resetParticipantInactivity();
             roundTargetDialogPending = true;
             robotDialogContext = context;
             robotDialogMessages = messages;
@@ -2149,7 +2320,7 @@
             const opened = openRobotDialogSequence([
                 "我偷偷觀察他們的進度，發現他們有一陣子沒有動作了。",
                 "是因為沒有地瓜了吧。那我們要分給他們一些地瓜嗎？",
-                "如果你想要分享，可以把烤好的地瓜拿到對方的得分區或是放在對方面前"
+                "如果你想要分享，可以把烤好的地瓜拿到另外一組玩家的得分區或是放在他們面前"
             ], "round2_scarcity");
             if (opened) round2ScarcityDialogShown = true;
         }
@@ -2186,6 +2357,7 @@
             robotDialogContext = null;
             robotDialogMessages = [];
             robotDialogMessageIndex = 0;
+            resetParticipantInactivity();
         }
 
         function startAllocationAnimation() {
@@ -2237,7 +2409,8 @@
             }
 
             const conditionId = experimentCondition ? experimentCondition.id : "unassigned";
-            const surveyPayload = `Round_${currentRound}|Mode:${surveyMode}|Condition:${conditionId}|QuestionSource:${surveyQuestionSource}|HelpDecision:${robotHelpDecision}|` + answers.join("|");
+            const avatarTheme = experimentCondition ? experimentCondition.avatarTheme : avatarThemeIndex;
+            const surveyPayload = `Round_${currentRound}|Mode:${surveyMode}|Condition:${conditionId}|AvatarTheme:${avatarTheme}|QuestionSource:${surveyQuestionSource}|HelpDecision:${robotHelpDecision}|` + answers.join("|");
             console.log(`問卷數據串:`, surveyPayload);
             uploadSurveyData(surveyPayload);
 
@@ -2295,12 +2468,16 @@
             if (e.code in keys) {
                 e.preventDefault();
                 keys[e.code] = true;
+                registerParticipantActivity();
                 if (e.code === "ArrowLeft" || e.code === "ArrowRight") playerMovementAxis = "x";
                 if (e.code === "ArrowUp" || e.code === "ArrowDown") playerMovementAxis = "y";
             }
             if (e.code === "Space" && (currentStage === 'GAMING' || currentStage === 'PRACTICE')) { handlePlayerAction(); }
             if (e.code === "Enter" && currentStage === 'PRACTICE_COMPLETE') confirmPracticeComplete();
             else if (e.code === "Enter" && roundTargetDialogPending) resolveSecondRoundHelpDialog("ok");
+            if (e.code === "Escape" && currentStage === 'THANKS' && document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
         });
         window.addEventListener("keyup", e => { if (e.code in keys) { e.preventDefault(); keys[e.code] = false; } });
 
