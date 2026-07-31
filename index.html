@@ -36,14 +36,35 @@
         .intro-instructions p {
             margin: 0 0 12px; font-size: 16px; line-height: 1.65; color: #f8fafc;
         }
-        .intro-robot-role {
-            display: flex; align-items: center; gap: 18px; margin-bottom: 12px;
+        .intro-role-panel {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px; margin: 12px 0 14px;
         }
-        .intro-robot-role p { flex: 1; margin: 0; }
-        .intro-robot-role img {
-            width: 108px; height: 108px; flex: 0 0 108px; object-fit: cover;
-            border-radius: 50%; border: 3px solid #f8c471;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+        .intro-role-card {
+            display: flex; align-items: center; gap: 14px;
+            min-height: 128px; padding: 12px 14px; box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(248, 196, 113, 0.55);
+            border-radius: 8px;
+        }
+        .intro-role-visual {
+            width: 112px; height: 112px; flex: 0 0 112px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 249, 234, 0.14);
+            border: 2px solid rgba(248, 196, 113, 0.8);
+            border-radius: 8px; overflow: hidden;
+        }
+        .intro-role-visual img,
+        .intro-role-visual canvas {
+            width: 100%; height: 100%; object-fit: contain; display: block;
+        }
+        .intro-role-copy { flex: 1; min-width: 0; }
+        .intro-role-title {
+            margin-bottom: 6px; color: #f8c471;
+            font-size: 17px; font-weight: bold; letter-spacing: 0;
+        }
+        .intro-role-copy p {
+            margin: 0; color: #f8fafc; font-size: 15px; line-height: 1.55;
         }
         .intro-operation {
             margin-top: 16px; padding: 14px 18px;
@@ -116,7 +137,8 @@
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
             background: rgba(255, 255, 255, 0.12);
         }
-        .gal-character img {
+        .gal-character img,
+        .gal-character canvas {
             width: 100%; height: 100%; object-fit: cover; display: block;
         }
         .gal-dialog-box {
@@ -134,10 +156,13 @@
             border-radius: 6px 6px 0 0; font-weight: bold; letter-spacing: 0;
         }
         #robotDialogText {
-            color: #ffffff; font-size: 19px; line-height: 1.65; min-height: 62px; text-align: center;
+            color: #ffffff; font-size: 19px; line-height: 1.75; min-height: 62px;
+            text-align: left; max-width: 860px; margin: 0 auto;
+            white-space: pre-line;
         }
         .gal-choices {
-            display: flex; justify-content: center; gap: 12px; margin-top: 18px;
+            display: flex; justify-content: center; align-items: center;
+            gap: 12px; margin-top: 18px; min-height: 42px;
         }
         .gal-choice {
             border: 1px solid rgba(255, 255, 255, 0.22);
@@ -156,10 +181,11 @@
         #practiceControlLayer {
             position: absolute; left: 46px; right: 46px; bottom: 34px;
             min-height: 142px; box-sizing: border-box;
-            display: none; z-index: 250; background: rgba(16, 24, 39, 0.94);
+            display: none; z-index: 250; background: rgba(16, 24, 39, 0.58);
             padding: 34px 150px 24px 34px; border-radius: 8px;
-            border: 2px solid rgba(248, 196, 113, 0.86);
-            align-items: center; gap: 16px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.46);
+            border: 2px solid rgba(248, 196, 113, 0.58);
+            align-items: center; gap: 16px; box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32);
+            backdrop-filter: blur(2px);
         }
         .practice-copy { flex: 1; min-width: 0; text-align: left; }
         #practiceStepBadge {
@@ -233,7 +259,7 @@
             <img id="practiceGuideImage" src="practice_guide.png" alt="練習操作說明">
             <div class="practice-copy">
                 <div id="practiceStepBadge">練習目標 0 / 5</div>
-                <div id="practiceStepText">這是試玩階段。請等待AI助手將原料放入烤箱；地瓜烤好後會留在烤箱內，請靠近烤箱按 Space 拿起，再送到上方橘色得分區。</div>
+                <div id="practiceStepText">這是試玩階段。請等待機器人助手將原料放入烤箱；地瓜烤好後會留在烤箱內，請靠近烤箱按 Space 拿起，再送到上方橘色得分區。</div>
             </div>
             <button class="btn" id="endPracticeBtn" style="background-color: #e67e22;" disabled>完成練習，進入第一回合</button>
         </div>
@@ -254,11 +280,27 @@
             <div class="intro-top">
                 <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">協作實驗：地瓜烘烤任務</h2>
                 <div class="intro-instructions">
-                    <p>您好！這是一個烤地瓜的遊戲，在這個遊戲當中，請您盡可能和AI助手合作，在時間內完成最多烤地瓜。</p>
+                    <p>您好！這是一個烤地瓜的遊戲，在這個遊戲當中，請您盡可能和機器人助手合作，在時間內完成最多烤地瓜。</p>
                     <p>您的任務為操作右方畫面中的人物，將籃子裡的地瓜放在烤盤上。</p>
-                    <div class="intro-robot-role">
-                        <p>在遊戲的中間下方是AI助手，他會操作右方畫面中的另一個人物將烤好的地瓜送上窗台。在遊戲中你們要合作完成這個任務，他在遊戲中的角色是</p>
-                        <img id="introRobotImage" src="direct_happy.jpg" alt="遊戲中的AI助手">
+                    <div class="intro-role-panel">
+                        <div class="intro-role-card">
+                            <div class="intro-role-visual">
+                                <img id="introParticipantAvatar" src="green1_sprite.png" alt="受試者操作角色">
+                            </div>
+                            <div class="intro-role-copy">
+                                <div class="intro-role-title">您的操作角色</div>
+                                <p>這是您在遊戲中操作的 avatar。請操作這個角色拿取地瓜、放到烤盤，並把烤好的地瓜送到上方得分區。</p>
+                            </div>
+                        </div>
+                        <div class="intro-role-card">
+                            <div class="intro-role-visual">
+                                <canvas id="introRobotAvatarCanvas" width="140" height="140" aria-label="機器人助手遊戲角色"></canvas>
+                            </div>
+                            <div class="intro-role-copy">
+                                <div class="intro-role-title">機器人助手的遊戲角色</div>
+                                <p>在遊戲的中間下方是機器人助手，他會操作這個 avatar 與您合作，將烤好的地瓜送上窗台。</p>
+                            </div>
+                        </div>
                     </div>
                     <p>左方畫面則是另外一組與您連線的玩家，他們的任務也是在時間內盡可能完成最多烤地瓜。</p>
                     <p>完成的地瓜數量（得分）將會呈現在上方。</p>
@@ -288,10 +330,10 @@
 
         <div id="robotDialogLayer">
             <div class="gal-character">
-                <img id="robotDialogPortrait" src="direct_happy.jpg" alt="AI助手">
+                <img id="robotDialogPortrait" src="direct_happy.jpg" alt="機器人助手">
             </div>
             <div class="gal-dialog-box">
-                <div class="gal-nameplate" id="robotDialogName">AI助手</div>
+                <div class="gal-nameplate" id="robotDialogName">機器人助手</div>
                 <div id="robotDialogText"></div>
                 <div class="gal-choices">
                     <button type="button" class="gal-choice primary" id="helpOtherTeamBtn">OK</button>
@@ -306,8 +348,8 @@
                 <p id="modalSub">正在打包並上傳您的行為數據...</p>
                 <div class="stats-container">
                     <div class="stats-item"><span>結束回合 (Finished Round):</span><span id="resRound" class="stats-val">1 / 3</span></div>
-                    <div class="stats-item"><span>另外一組玩家得分:</span><span id="resLeftScore" class="stats-val">0</span></div>
-                    <div class="stats-item"><span>您的得分:</span><span id="resRightScore" class="stats-val">0</span></div>
+                    <div class="stats-item"><span>藍隊得分:</span><span id="resLeftScore" class="stats-val">0</span></div>
+                    <div class="stats-item"><span>橘隊得分:</span><span id="resRightScore" class="stats-val">0</span></div>
                 </div>
                 
                 <button class="btn" id="nextRoundBtn" style="width: 100%; display: none;">確認，進入下一回合</button>
@@ -345,7 +387,7 @@
         const ENTRY_SURVEY_DATA = "entry.1500336990";    // 問卷回答數據
 
         const CONDITION_ASSIGNMENT_MODE = "participantHash"; // 可改為 "random"
-        const ROBOT_DISPLAY_NAME = "AI助手";
+        const ROBOT_DISPLAY_NAME = "橘隊機器人";
         const ROBOT_CONDITIONS = [
             { id: "direct_happy", label: "直視 / 正向", image: "direct_happy.jpg" },
             { id: "direct_neutral", label: "直視 / 中性", image: "direct_neutral.jpg" },
@@ -353,42 +395,42 @@
             { id: "averted_neutral", label: "側視 / 中性", image: "averted_neutral.jpg" }
         ];
         const ROUND_DISTRIBUTIONS = {
-            1: { id: "round_1", opponent: 12, participant: 45 },
-            2: { id: "round_2", opponent: 10, participant: 40 },
-            3: { id: "round_3", opponent: 12, participant: 45 }
+            1: { id: "round_1", opponent: 11, participant: 33 },
+            2: { id: "round_2", opponent: 13, participant: 39 },
+            3: { id: "round_3", opponent: 9, participant: 27 }
         };
-        const WHEEL_VALUES = Array.from({ length: 60 }, (_, index) => index + 1);
+        const WHEEL_VALUES = [9, 11, 13, 18, 21, 24, 27, 30, 33, 36, 39, 42];
         const HUMAN_AVATAR_THEMES = [
             {
-                participant: { shirt: "#f28c45", pants: "#416f9f", hair: "#4d3328", skin: "#ffd1a8", accent: "#ef9b51" },
-                other: { shirt: "#55b7a4", pants: "#7666b5", hair: "#3d3029", skin: "#ffd1a8", accent: "#55b7a4" },
+                participant: { shirt: "#f28c45", pants: "#416f9f", skin: "#ffd1a8", outline: "#7a543b", accent: "#ef9b51" },
+                other: { shirt: "#55b7a4", pants: "#7666b5", skin: "#ffd1a8", outline: "#7a543b", accent: "#55b7a4" },
                 participantRobot: "#e69545",
                 otherRobot: "#1abc9c"
             },
             {
-                participant: { shirt: "#55b7a4", pants: "#7666b5", hair: "#3d3029", skin: "#ffd1a8", accent: "#55b7a4" },
-                other: { shirt: "#f28c45", pants: "#416f9f", hair: "#4d3328", skin: "#ffd1a8", accent: "#ef9b51" },
+                participant: { shirt: "#55b7a4", pants: "#7666b5", skin: "#ffd1a8", outline: "#7a543b", accent: "#55b7a4" },
+                other: { shirt: "#f28c45", pants: "#416f9f", skin: "#ffd1a8", outline: "#7a543b", accent: "#ef9b51" },
                 participantRobot: "#1abc9c",
                 otherRobot: "#e69545"
             }
         ];
         let avatarThemeIndex = 0;
         const ROBOT_EVALUATION_QUESTIONS = [
-            "AI助手在本回合中讓我覺得可靠。",
-            "AI助手的協助符合任務需求。",
-            "AI助手在適當時機提供提示。",
-            "我覺得AI助手是一位合作夥伴。",
-            "我願意在後續任務中繼續與AI助手合作。"
+            "機器人助手在本回合中讓我覺得可靠。",
+            "機器人助手的協助符合任務需求。",
+            "機器人助手在適當時機提供提示。",
+            "我覺得機器人助手是一位合作夥伴。",
+            "我願意在後續任務中繼續與機器人助手合作。"
         ];
         const DEFAULT_SURVEY_QUESTIONS = [
             "我能清楚理解本回合的目標與下一步操作。",
-            "AI助手的行為讓我覺得可預測。",
-            "AI助手提示或表情有幫助我理解目前狀態。",
+            "機器人助手的行為讓我覺得可預測。",
+            "機器人助手提示或表情有幫助我理解目前狀態。",
             "本回合的時間壓力是可以負荷的。",
             "地瓜數量分配讓我覺得任務難度合理。",
             "我覺得自己能順利控制角色完成任務。",
-            "我信任AI助手會穩定完成它的工作。",
-            "我在本回合中感受到與AI助手協作。",
+            "我信任機器人助手會穩定完成它的工作。",
+            "我在本回合中感受到與機器人助手協作。",
             "本回合的操作流程流暢自然。",
             "我願意在下一回合繼續採用同樣的合作方式。"
         ];
@@ -418,6 +460,8 @@
         const BOT_SPEED = 2.6;
         const WALK_PHASE_STEP = 0.22;
         const REACH_DISTANCE = 32;
+        const ROBOT_DIALOG_CHAR_DELAY_MS = 46;
+        const ROBOT_DIALOG_BUTTON_DELAY_MS = 3000;
         
         let currentStage = 'INTRO'; 
         let currentRound = 1;
@@ -445,6 +489,11 @@
         let robotDialogContext = null;
         let robotDialogMessages = [];
         let robotDialogMessageIndex = 0;
+        let robotDialogButtonTimer = null;
+        let robotDialogCanAdvance = false;
+        let robotDialogButtonDelayMs = ROBOT_DIALOG_BUTTON_DELAY_MS;
+        let robotDialogLogEnabled = true;
+        let robotDialogOnComplete = null;
         let round2OpponentScoredOutAt = null;
         let round2ScarcityDialogShown = false;
         let donatedPotatoes = 0;
@@ -518,6 +567,15 @@
         const centerRobotImg = new Image();
         centerRobotImg.src = "direct_happy.jpg";
 
+        const participantWalkImg = new Image();
+        participantWalkImg.src = "orange1_sprite.png";
+        const participantHoldImg = new Image();
+        participantHoldImg.src = "orange2_sprite.png";
+        const otherWalkImg = new Image();
+        otherWalkImg.src = "green1_sprite.png";
+        const otherHoldImg = new Image();
+        otherHoldImg.src = "green2_sprite.png";
+
         function getAvatarTheme() {
             return HUMAN_AVATAR_THEMES[avatarThemeIndex] || HUMAN_AVATAR_THEMES[0];
         }
@@ -563,11 +621,10 @@
             ctx.fillText(text, x, y + 14);
         }
 
-        function drawHeldSweetPotato(ball) {
+        function drawHeldSweetPotato(ball, offsetX = 0, offsetY = -36, size = 26) {
             const img = ball.status === "purple" ? imgPurple : imgYellow;
-            const size = 26;
             ctx.save();
-            ctx.translate(0, -36);
+            ctx.translate(offsetX, offsetY);
             ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
             ctx.beginPath();
             ctx.ellipse(0, 10, 13, 4, 0, 0, Math.PI * 2);
@@ -584,6 +641,35 @@
                 ctx.stroke();
             }
             ctx.restore();
+        }
+
+        function drawImageAvatar(worker, label, role) {
+            const bob = worker.moving ? Math.sin(worker.walkPhase) * 1.5 : 0;
+            const img = role === "participant"
+                ? (worker.holdingBall ? participantHoldImg : participantWalkImg)
+                : (worker.holdingBall ? otherHoldImg : otherWalkImg);
+            ctx.save();
+            ctx.translate(worker.x, worker.y + bob);
+            ctx.fillStyle = "rgba(79, 52, 34, 0.18)";
+            ctx.beginPath();
+            ctx.ellipse(0, 24, 22, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (img.complete && img.naturalWidth !== 0) {
+                const height = 62;
+                const width = height * (img.naturalWidth / img.naturalHeight);
+                ctx.drawImage(img, -width / 2, -42, width, height);
+            } else {
+                ctx.restore();
+                drawChibiHuman(worker, getHumanAppearance(role), label);
+                return;
+            }
+            if (worker.holdingBall) {
+                drawHeldSweetPotato(worker.holdingBall, -22, -16, 18);
+            }
+            ctx.restore();
+
+            drawEntityNameTag(worker.x, worker.y + 32, label, "#ffffff", role === "participant" ? 128 : 118);
         }
 
         function drawChibiHuman(worker, appearance, label) {
@@ -630,11 +716,13 @@
             ctx.beginPath();
             ctx.arc(0, -17, 17, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = appearance.hair;
+            ctx.strokeStyle = appearance.outline;
+            ctx.lineWidth = 2.2;
+            ctx.stroke();
+            ctx.fillStyle = "rgba(255, 255, 255, 0.34)";
             ctx.beginPath();
-            ctx.arc(0, -22, 17, Math.PI, Math.PI * 2);
+            ctx.ellipse(-6, -25, 8, 4, -0.35, 0, Math.PI * 2);
             ctx.fill();
-            fillRoundedRect(-15, -31, 30, 13, 7, appearance.hair);
             ctx.fillStyle = "#3e2a21";
             ctx.beginPath();
             ctx.arc(-6, -16, 2.2, 0, Math.PI * 2);
@@ -692,7 +780,7 @@
                 if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y - 25; }
             }
             draw() {
-                drawChibiHuman(this, getHumanAppearance("participant"), getParticipantDisplayName());
+                drawImageAvatar(this, getParticipantDisplayName(), "participant");
             }
         }
 
@@ -751,7 +839,7 @@
         }
 
         function drawOpponentDog(worker, accentColor, label) {
-            drawChibiHuman(worker, getHumanAppearance("other"), label);
+            drawImageAvatar(worker, label, "other");
         }
 
         function getRobotWorkAreaTop() {
@@ -766,18 +854,11 @@
             };
         }
 
-        function drawOpponentRobot(worker, accentColor, label) {
-            if (worker.y < getRobotWorkAreaTop()) return;
-            const bob = worker.moving ? Math.sin(worker.walkPhase) : 0;
-            const expression = getRobotAvatarExpression();
+        function drawReferenceRobotHead(cx, cy, scale, accentColor, expression = getRobotAvatarExpression()) {
             const eyeShift = expression.gaze === "averted" ? 2.4 : 0;
             ctx.save();
-            ctx.translate(worker.x, worker.y + bob);
-            ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
-            ctx.beginPath();
-            ctx.ellipse(0, 12, 22, 7, 0, 0, Math.PI * 2);
-            ctx.fill();
-
+            ctx.translate(cx, cy);
+            ctx.scale(scale, scale);
             fillRoundedRect(-26, -37, 52, 48, 22, "#ffffff");
             strokeRoundedRect(-26, -37, 52, 48, 22, "#d9e3e6", 2);
             strokeRoundedRect(-22, -33, 44, 40, 18, accentColor, 2);
@@ -785,19 +866,16 @@
             ctx.beginPath();
             ctx.ellipse(-9, -31, 9, 4, -0.35, 0, Math.PI * 2);
             ctx.fill();
-
             fillRoundedRect(-14, -41, 28, 13, 7, "#f3f7f8");
             strokeRoundedRect(-14, -41, 28, 13, 7, "#c8d2d6", 1.2);
             ctx.fillStyle = "#20262b";
             ctx.beginPath();
             ctx.arc(0, -34, 2.2, 0, Math.PI * 2);
             ctx.fill();
-
             fillRoundedRect(-32, -22, 8, 21, 5, "#edf3f4");
             fillRoundedRect(24, -22, 8, 21, 5, "#edf3f4");
             strokeRoundedRect(-32, -22, 8, 21, 5, accentColor, 1.5);
             strokeRoundedRect(24, -22, 8, 21, 5, accentColor, 1.5);
-
             [-9, 9].forEach(eyeX => {
                 ctx.fillStyle = "#6ee7ff";
                 ctx.beginPath();
@@ -812,7 +890,6 @@
                 ctx.arc(eyeX + eyeShift + 1.4, -20, 1.6, 0, Math.PI * 2);
                 ctx.fill();
             });
-
             ctx.strokeStyle = "#1f2933";
             ctx.lineWidth = 2.4;
             ctx.lineCap = "round";
@@ -825,8 +902,283 @@
             }
             ctx.stroke();
             ctx.restore();
+        }
 
-            drawEntityNameTag(worker.x, worker.y + 20, label, "#ffffff", 92);
+        function renderRobotDialogPortrait(robot) {
+            const portraitCanvas = document.getElementById("robotDialogPortrait");
+            if (!portraitCanvas || !portraitCanvas.getContext) return;
+            const pctx = portraitCanvas.getContext("2d");
+            const expression = {
+                gaze: robot.id.includes("averted") ? "averted" : "direct",
+                mood: robot.id.includes("neutral") ? "neutral" : "happy"
+            };
+            const accentColor = getRobotAccent("participant");
+            const eyeShift = expression.gaze === "averted" ? 7 : 0;
+            const rr = (x, y, width, height, radius, fill, stroke = null, lineWidth = 2) => {
+                const r = Math.min(radius, width / 2, height / 2);
+                pctx.beginPath();
+                pctx.moveTo(x + r, y);
+                pctx.lineTo(x + width - r, y);
+                pctx.quadraticCurveTo(x + width, y, x + width, y + r);
+                pctx.lineTo(x + width, y + height - r);
+                pctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+                pctx.lineTo(x + r, y + height);
+                pctx.quadraticCurveTo(x, y + height, x, y + height - r);
+                pctx.lineTo(x, y + r);
+                pctx.quadraticCurveTo(x, y, x + r, y);
+                if (fill) {
+                    pctx.fillStyle = fill;
+                    pctx.fill();
+                }
+                if (stroke) {
+                    pctx.strokeStyle = stroke;
+                    pctx.lineWidth = lineWidth;
+                    pctx.stroke();
+                }
+            };
+
+            pctx.clearRect(0, 0, portraitCanvas.width, portraitCanvas.height);
+            const cx = portraitCanvas.width / 2;
+            const cy = 188;
+            pctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+            pctx.beginPath();
+            pctx.arc(cx, cy - 8, 126, 0, Math.PI * 2);
+            pctx.fill();
+            rr(cx - 92, cy - 104, 184, 168, 78, "#ffffff", "#d8e3e6", 5);
+            rr(cx - 76, cy - 88, 152, 136, 58, null, accentColor, 5);
+            rr(cx - 50, cy - 122, 100, 38, 18, "#f3f7f8", "#c8d2d6", 3);
+            pctx.fillStyle = "#20262b";
+            pctx.beginPath();
+            pctx.arc(cx, cy - 103, 6, 0, Math.PI * 2);
+            pctx.fill();
+            rr(cx - 114, cy - 52, 28, 72, 15, "#edf3f4", accentColor, 3);
+            rr(cx + 86, cy - 52, 28, 72, 15, "#edf3f4", accentColor, 3);
+            pctx.fillStyle = "rgba(255, 255, 255, 0.74)";
+            pctx.beginPath();
+            pctx.ellipse(cx - 34, cy - 82, 32, 13, -0.35, 0, Math.PI * 2);
+            pctx.fill();
+
+            [cx - 34, cx + 34].forEach(eyeX => {
+                pctx.fillStyle = "#6ee7ff";
+                pctx.beginPath();
+                pctx.arc(eyeX, cy - 28, 27, 0, Math.PI * 2);
+                pctx.fill();
+                pctx.fillStyle = "#111827";
+                pctx.beginPath();
+                pctx.arc(eyeX + eyeShift, cy - 28, 17, 0, Math.PI * 2);
+                pctx.fill();
+                pctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                pctx.beginPath();
+                pctx.arc(eyeX + eyeShift + 6, cy - 41, 6, 0, Math.PI * 2);
+                pctx.fill();
+            });
+            pctx.strokeStyle = "#1f2933";
+            pctx.lineWidth = 8;
+            pctx.lineCap = "round";
+            pctx.beginPath();
+            if (expression.mood === "neutral") {
+                pctx.moveTo(cx - 22, cy + 36);
+                pctx.lineTo(cx + 22, cy + 36);
+            } else {
+                pctx.arc(cx, cy + 22, 32, 0.18, Math.PI - 0.18);
+            }
+            pctx.stroke();
+        }
+
+        function renderIntroRobotAvatar() {
+            const avatarCanvas = document.getElementById("introRobotAvatarCanvas");
+            if (!avatarCanvas || !avatarCanvas.getContext) return;
+            const ictx = avatarCanvas.getContext("2d");
+            const accentColor = getRobotAccent("participant");
+            const expression = getRobotAvatarExpression();
+            const eyeShift = expression.gaze === "averted" ? 2.2 : 0;
+            const rr = (x, y, width, height, radius, fill, stroke = null, lineWidth = 2) => {
+                const r = Math.min(radius, width / 2, height / 2);
+                ictx.beginPath();
+                ictx.moveTo(x + r, y);
+                ictx.lineTo(x + width - r, y);
+                ictx.quadraticCurveTo(x + width, y, x + width, y + r);
+                ictx.lineTo(x + width, y + height - r);
+                ictx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+                ictx.lineTo(x + r, y + height);
+                ictx.quadraticCurveTo(x, y + height, x, y + height - r);
+                ictx.lineTo(x, y + r);
+                ictx.quadraticCurveTo(x, y, x + r, y);
+                if (fill) {
+                    ictx.fillStyle = fill;
+                    ictx.fill();
+                }
+                if (stroke) {
+                    ictx.strokeStyle = stroke;
+                    ictx.lineWidth = lineWidth;
+                    ictx.stroke();
+                }
+            };
+
+            ictx.clearRect(0, 0, avatarCanvas.width, avatarCanvas.height);
+            ictx.save();
+            ictx.translate(70, 79);
+            ictx.scale(1.35, 1.35);
+            ictx.fillStyle = "rgba(79, 52, 34, 0.16)";
+            ictx.beginPath();
+            ictx.ellipse(0, 42, 27, 7, 0, 0, Math.PI * 2);
+            ictx.fill();
+
+            ictx.strokeStyle = "#8b969b";
+            ictx.lineWidth = 4;
+            ictx.lineCap = "round";
+            ictx.beginPath();
+            ictx.moveTo(-19, 10);
+            ictx.lineTo(-29, 26);
+            ictx.moveTo(19, 10);
+            ictx.lineTo(29, 26);
+            ictx.stroke();
+
+            rr(-13, -2, 26, 13, 6, "#aeb8bd");
+            rr(-21, 8, 42, 34, 11, "#ffffff", "#d5dde0", 2.2);
+            rr(-15, 23, 30, 7, 4, accentColor);
+            rr(-13, 36, 10, 10, 4, "#aeb8bd");
+            rr(3, 36, 10, 10, 4, "#aeb8bd");
+            rr(-35, -20, 10, 24, 6, "#f7fbfc", "#d5dde0", 1.8);
+            rr(25, -20, 10, 24, 6, "#f7fbfc", "#d5dde0", 1.8);
+
+            const headGradient = ictx.createRadialGradient(-10, -30, 6, 0, -20, 34);
+            headGradient.addColorStop(0, "#ffffff");
+            headGradient.addColorStop(0.68, "#f7fbfc");
+            headGradient.addColorStop(1, "#e1eaed");
+            rr(-29, -45, 58, 54, 24, headGradient, "#d4dee1", 2.4);
+            rr(-24, -40, 48, 45, 19, null, accentColor, 2.1);
+            rr(-14, -49, 28, 13, 7, "#edf3f4", "#c4d0d4", 1.5);
+            ictx.fillStyle = "#20262b";
+            ictx.beginPath();
+            ictx.arc(0, -42, 2.2, 0, Math.PI * 2);
+            ictx.fill();
+            ictx.fillStyle = "rgba(255, 255, 255, 0.72)";
+            ictx.beginPath();
+            ictx.ellipse(-10, -36, 11, 5, -0.4, 0, Math.PI * 2);
+            ictx.fill();
+
+            [-9, 9].forEach(eyeX => {
+                ictx.fillStyle = "#6ee7ff";
+                ictx.beginPath();
+                ictx.arc(eyeX, -23, 7.5, 0, Math.PI * 2);
+                ictx.fill();
+                ictx.fillStyle = "#111827";
+                ictx.beginPath();
+                ictx.arc(eyeX + eyeShift, -23, 4.6, 0, Math.PI * 2);
+                ictx.fill();
+                ictx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                ictx.beginPath();
+                ictx.arc(eyeX + eyeShift + 1.4, -26, 1.5, 0, Math.PI * 2);
+                ictx.fill();
+            });
+
+            ictx.strokeStyle = "#1f2933";
+            ictx.lineWidth = 2.5;
+            ictx.lineCap = "round";
+            ictx.beginPath();
+            if (expression.mood === "neutral") {
+                ictx.moveTo(-5, -9);
+                ictx.lineTo(5, -9);
+            } else {
+                ictx.arc(0, -13, 8, 0.18, Math.PI - 0.18);
+            }
+            ictx.stroke();
+            ictx.restore();
+        }
+
+        function drawOpponentRobot(worker, accentColor, label) {
+            if (worker.y < getRobotWorkAreaTop()) return;
+            const bob = worker.moving ? Math.sin(worker.walkPhase) : 0;
+            const expression = getRobotAvatarExpression();
+            const eyeShift = expression.gaze === "averted" ? 2.2 : 0;
+            ctx.save();
+            ctx.translate(worker.x, worker.y + bob);
+            ctx.scale(0.74, 0.74);
+            ctx.fillStyle = "rgba(79, 52, 34, 0.2)";
+            ctx.beginPath();
+            ctx.ellipse(0, 24, 23, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "#8b969b";
+            ctx.lineWidth = 3.2;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            if (worker.holdingBall) {
+                ctx.moveTo(-19, 10);
+                ctx.lineTo(-12, -9);
+                ctx.moveTo(19, 10);
+                ctx.lineTo(12, -9);
+            } else {
+                ctx.moveTo(-19, 10);
+                ctx.lineTo(-29, 25);
+                ctx.moveTo(19, 10);
+                ctx.lineTo(29, 25);
+            }
+            ctx.stroke();
+
+            fillRoundedRect(-13, -2, 26, 13, 6, "#aeb8bd");
+            fillRoundedRect(-21, 8, 42, 34, 11, "#ffffff");
+            strokeRoundedRect(-21, 8, 42, 34, 11, "#d5dde0", 2.2);
+            fillRoundedRect(-15, 23, 30, 7, 4, accentColor);
+            fillRoundedRect(-13, 36, 10, 10, 4, "#aeb8bd");
+            fillRoundedRect(3, 36, 10, 10, 4, "#aeb8bd");
+
+            fillRoundedRect(-35, -20, 10, 24, 6, "#f7fbfc");
+            fillRoundedRect(25, -20, 10, 24, 6, "#f7fbfc");
+            strokeRoundedRect(-35, -20, 10, 24, 6, "#d5dde0", 1.8);
+            strokeRoundedRect(25, -20, 10, 24, 6, "#d5dde0", 1.8);
+
+            const headGradient = ctx.createRadialGradient(-10, -30, 6, 0, -20, 34);
+            headGradient.addColorStop(0, "#ffffff");
+            headGradient.addColorStop(0.68, "#f7fbfc");
+            headGradient.addColorStop(1, "#e1eaed");
+            fillRoundedRect(-29, -45, 58, 54, 24, headGradient);
+            strokeRoundedRect(-29, -45, 58, 54, 24, "#d4dee1", 2.4);
+            strokeRoundedRect(-24, -40, 48, 45, 19, accentColor, 2.1);
+
+            fillRoundedRect(-14, -49, 28, 13, 7, "#edf3f4");
+            strokeRoundedRect(-14, -49, 28, 13, 7, "#c4d0d4", 1.5);
+            ctx.fillStyle = "#20262b";
+            ctx.beginPath();
+            ctx.arc(0, -42, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+            ctx.beginPath();
+            ctx.ellipse(-10, -36, 11, 5, -0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            [-9, 9].forEach(eyeX => {
+                ctx.fillStyle = "#6ee7ff";
+                ctx.beginPath();
+                ctx.arc(eyeX, -23, 7.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#111827";
+                ctx.beginPath();
+                ctx.arc(eyeX + eyeShift, -23, 4.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                ctx.beginPath();
+                ctx.arc(eyeX + eyeShift + 1.4, -26, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.strokeStyle = "#1f2933";
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            if (expression.mood === "neutral") {
+                ctx.moveTo(-5, -9);
+                ctx.lineTo(5, -9);
+            } else {
+                ctx.arc(0, -13, 8, 0.18, Math.PI - 0.18);
+            }
+            ctx.stroke();
+            if (worker.holdingBall) drawHeldSweetPotato(worker.holdingBall);
+            ctx.restore();
+
+            drawEntityNameTag(worker.x, worker.y + 36, label, "#ffffff", 92);
         }
 
         // ========================================================
@@ -933,7 +1285,8 @@
             }
 
             draw() {
-                drawOpponentDog(this, this.color, "另外一組玩家");
+                // drawOpponentDog(this, this.color, "另外一組玩家");
+                drawOpponentDog(this, this.color, "藍隊玩家");
             }
         }
 
@@ -974,8 +1327,8 @@
                 if (this.immobileFrames >= 300 && !this.antiStuckActive) {
                     this.antiStuckActive = true; this.immobileFrames = 0;
                     let randomAngle = Math.random() * Math.PI * 2;
-                    this.antiStuckTargetX = this.x + Math.cos(randomAngle) * 110;
-                    this.antiStuckTargetY = this.y + Math.sin(randomAngle) * 110;
+                    this.antiStuckTargetX = clamp(this.x + Math.cos(randomAngle) * 110, this.radius, midX - this.radius);
+                    this.antiStuckTargetY = clamp(this.y + Math.sin(randomAngle) * 110, getRobotWorkAreaTop(), canvas.height - 45);
                 }
 
                 if (this.antiStuckActive) {
@@ -1169,6 +1522,7 @@
             }
             
             draw() {
+                if (this.isHeld) return;
                 ctx.save();
                 
                 let currentImg = (this.status === "purple") ? imgPurple : imgYellow;
@@ -1249,9 +1603,14 @@
             roundTargetDialogPending = false;
             roundTargetReached = false;
             roundEndReason = "timeout";
+            clearInterval(robotDialogTypeTimer);
+            clearTimeout(robotDialogButtonTimer);
             robotDialogContext = null;
             robotDialogMessages = [];
             robotDialogMessageIndex = 0;
+            robotDialogCanAdvance = false;
+            robotDialogLogEnabled = true;
+            robotDialogOnComplete = null;
             round2OpponentScoredOutAt = null;
             round2ScarcityDialogShown = false;
             robotHelpDecision = "not_asked";
@@ -1410,9 +1769,9 @@
             } else if (cookedReady) {
                 text.innerText = maybeAddFreeMoveReminder("有黃色熟地瓜烤好了。請靠近烤箱按 Space 拿起，再送到上方橘色得分區。");
             } else if (cookingNow) {
-                text.innerText = maybeAddFreeMoveReminder("AI助手正在送原料，烤箱正在加熱。請等待黃色熟地瓜烤好後留在烤箱內。");
+                text.innerText = maybeAddFreeMoveReminder("機器人助手正在送原料，烤箱正在加熱。請等待黃色熟地瓜烤好後留在烤箱內。");
             } else {
-                text.innerText = maybeAddFreeMoveReminder("請觀察AI助手把紫色生地瓜送進烤箱；您的任務是把烤好的黃色地瓜送到上方橘色得分區。");
+                text.innerText = maybeAddFreeMoveReminder("請觀察機器人助手把紫色生地瓜送進烤箱；您的任務是把烤好的黃色地瓜送到上方橘色得分區。");
             }
             endBtn.style.display = "none";
             endBtn.disabled = true;
@@ -1469,6 +1828,35 @@
             ovens.forEach(o => o.slots = []);
             assignExperimentCondition();
             showWaitingThenStartRound();
+        }
+
+        function getPracticeTutorialMessages() {
+            return [
+                "您好！我是您的機器人助手，接下來我會來說明這個遊戲進行的方式。",
+                `接下來是練習階段。練習沒有時間限制，目標是完成 ${PRACTICE_TARGET_SCORE} 顆烤地瓜。`,
+                "我們會先分工合作：機器人助手會在下方工作區把紫色生地瓜送進烤箱。",
+                `烤箱一次最多可以放 ${OVEN_CAPACITY} 顆地瓜。地瓜烤好後會留在烤箱內，等您靠近拿起。`,
+                "您的任務是操作右方人物，靠近黃色熟地瓜按 Space 拿起，再送到上方橘色得分區按 Space 放下。",
+                "您可以試著在畫面中自由移動。若您將地瓜放在另一位玩家的得分區，則是對方得分。\n另外，當您把烤好的地瓜放在另一位玩家的移動區域內時，對方也可以拿取您放置的地瓜。",
+                "準備好後，按 OK 開始練習。"
+            ];
+        }
+
+        function startPracticeRoundAfterTutorial() {
+            currentStage = 'PRACTICE';
+            updatePracticeGuide(true);
+            document.getElementById("practiceControlLayer").style.display = "flex";
+            resetParticipantInactivity();
+        }
+
+        function showPracticeTutorial() {
+            currentStage = 'PRACTICE_TUTORIAL';
+            document.getElementById("practiceControlLayer").style.display = "none";
+            openRobotDialogSequence(getPracticeTutorialMessages(), "practice_tutorial", {
+                allowedStages: ["PRACTICE_TUTORIAL"],
+                log: false,
+                onComplete: startPracticeRoundAfterTutorial
+            });
         }
 
         // ==========================================
@@ -1720,13 +2108,13 @@
                 ctx.fill();
             }
 
-            [midX / 2, midX + midX / 2].forEach(cx => {
-                fillRoundedRect(cx - 62, y + 5, 124, 22, 5, "#6f4a33");
-                ctx.fillStyle = "#fff4d8";
-                ctx.font = "bold 12px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText("機器人工作區", cx, y + 20);
-            });
+            // [midX / 2, midX + midX / 2].forEach(cx => {
+            //     fillRoundedRect(cx - 62, y + 5, 124, 22, 5, "#6f4a33");
+            //     ctx.fillStyle = "#fff4d8";
+            //     ctx.font = "bold 12px sans-serif";
+            //     ctx.textAlign = "center";
+            //     ctx.fillText("機器人工作區", cx, y + 20);
+            // });
         }
 
         function drawRawBasket(basket, label, count, accentColor) {
@@ -1796,39 +2184,33 @@
         }
 
         function drawBottomRobot() {
-            const panelW = 360;
-            const panelH = 142;
+            ctx.save();
+            const panelW = 240;
+            const panelH = 146;
             const panelX = midX - panelW / 2;
             const panelY = canvas.height - panelH - 10;
             fillRoundedRect(panelX, panelY, panelW, panelH, 10, "rgba(255, 249, 234, 0.96)");
-            strokeRoundedRect(panelX, panelY, panelW, panelH, 10, "#8f5d3b", 3);
+            strokeRoundedRect(panelX, panelY, panelW, panelH, 10, "#8f5d3b", 2.2);
 
-            const cx = panelX + 82;
-            const cy = panelY + panelH / 2;
-            ctx.fillStyle = "#f6cf95";
-            ctx.beginPath();
-            ctx.arc(cx, cy, 64, 0, Math.PI * 2);
-            ctx.fill();
+            const cx = panelX + panelW / 2;
+            const imageSize = 108;
+            const imageY = panelY + 7;
             if (centerRobotImg.complete && centerRobotImg.naturalWidth !== 0) {
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(cx, cy, 59, 0, Math.PI * 2);
-                ctx.clip();
-                drawCoverImage(centerRobotImg, cx - 59, cy - 59, 118, 118);
-                ctx.restore();
+                drawCoverImage(centerRobotImg, cx - imageSize / 2, imageY, imageSize, imageSize);
             } else {
                 ctx.fillStyle = "#4f3422";
-                ctx.font = "10px sans-serif";
+                ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText("AI助手", cx, cy + 3);
+                ctx.textBaseline = "middle";
+                ctx.fillText("機器人助手", cx, imageY + imageSize / 2);
             }
 
             ctx.fillStyle = "#5b3a28";
-            ctx.font = "bold 17px sans-serif";
-            ctx.textAlign = "left";
-            ctx.fillText(ROBOT_DISPLAY_NAME, panelX + 165, panelY + 60);
-            ctx.font = "14px sans-serif";
-            ctx.fillText("原料配送中", panelX + 165, panelY + 88);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "alphabetic";
+            ctx.font = "bold 15px sans-serif";
+            ctx.fillText("原料配送中", cx, panelY + 132);
+            ctx.restore();
         }
 
         function getRemainingSecondsFloat() {
@@ -1836,8 +2218,12 @@
             return clamp(GAME_DURATION - ((Date.now() - startTime) / 1000), 0, GAME_DURATION);
         }
 
+        function isPracticeDisplayStage(stage = currentStage) {
+            return stage === 'PRACTICE' || stage === 'PRACTICE_TUTORIAL' || stage === 'PRACTICE_COMPLETE';
+        }
+
         function getProgressRatio() {
-            if (currentStage === 'PRACTICE' || currentStage === 'COUNTDOWN' || currentStage === 'ALLOCATION') return 1;
+            if (isPracticeDisplayStage() || currentStage === 'COUNTDOWN' || currentStage === 'ALLOCATION') return 1;
             return clamp(getRemainingSecondsFloat() / GAME_DURATION, 0, 1);
         }
 
@@ -1865,7 +2251,7 @@
                 ctx.translate(tx, ty);
                 ctx.rotate(textAngle + Math.PI / 2);
                 ctx.fillStyle = "#4f3422";
-                ctx.font = "bold 7px sans-serif";
+                ctx.font = "bold 15px sans-serif";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(value, 0, 0);
@@ -1959,31 +2345,31 @@
             ctx.fillStyle = "#fff9ea";
             ctx.font = "bold 12px sans-serif";
             ctx.textAlign = "right";
-            ctx.fillText(currentStage === 'PRACTICE' ? "練習" : `回合 ${currentRound}/${MAX_ROUNDS}`, barX - 16, 57);
+            ctx.fillText(isPracticeDisplayStage() ? "練習" : `回合 ${currentRound}/${MAX_ROUNDS}`, barX - 16, 57);
             ctx.textAlign = "left";
-            ctx.fillText(currentStage === 'PRACTICE' ? "無時間限制" : `${timeLeft} 秒`, barX + barWidth + 16, 57);
+            ctx.fillText(isPracticeDisplayStage() ? "無時間限制" : `${timeLeft} 秒`, barX + barWidth + 16, 57);
 
             // 2. 戰場主區域分割
             drawKitchenFloor();
             drawRobotWorkBarrier();
             drawRawAreaWall();
-            drawServingZone(leftZone, "另外一組得分區", "#55b7a4");
-            drawServingZone(rightZone, "您的得分區", "#ef9b51");
-            drawRawBasket(rawBaskets.left, "另外一組原料籃", getLeftRawCount(), "#3f8f82");
-            drawRawBasket(rawBaskets.right, "您的原料籃", getRightRawCount(), "#d97a34");
+            drawServingZone(leftZone, "藍隊得分區", "#55b7a4");
+            drawServingZone(rightZone, "橘隊得分區", "#ef9b51");
+            drawRawBasket(rawBaskets.left, "藍隊原料籃", getLeftRawCount(), "#3f8f82");
+            drawRawBasket(rawBaskets.right, "橘隊原料籃", getRightRawCount(), "#d97a34");
 
             ovens.forEach(o => {
                 drawKitchenOven(o);
             });
 
-            const displayTargetScore = currentStage === 'PRACTICE' ? PRACTICE_TARGET_SCORE : ROUND_TARGET_SCORE;
+            const displayTargetScore = isPracticeDisplayStage() ? PRACTICE_TARGET_SCORE : ROUND_TARGET_SCORE;
             const opponentScoreFill = playerData.leftScore >= displayTargetScore ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
             const participantScoreFill = playerData.rightScore >= displayTargetScore ? "#d9f2df" : "rgba(255, 249, 234, 0.96)";
             fillRoundedRect(20, topSectionHeight + 8, 250, 38, 8, opponentScoreFill);
             fillRoundedRect(canvas.width - 270, topSectionHeight + 8, 250, 38, 8, participantScoreFill);
             ctx.fillStyle = "#5b3a28"; ctx.font = "bold 18px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(`另外一組得分 ${playerData.leftScore} / ${displayTargetScore}`, 145, topSectionHeight + 34);
-            ctx.fillText(`您的得分 ${playerData.rightScore} / ${displayTargetScore}`, canvas.width - 145, topSectionHeight + 34);
+            ctx.fillText(`藍隊得分 ${playerData.leftScore} / ${displayTargetScore}`, 145, topSectionHeight + 34);
+            ctx.fillText(`橘隊得分 ${playerData.rightScore} / ${displayTargetScore}`, canvas.width - 145, topSectionHeight + 34);
 
             balls.forEach(ball => ball.draw());
             drawPracticeCue(timestamp);
@@ -2097,11 +2483,14 @@
             currentStage = 'GAMEOVER';
             hideIdleReminder();
             clearInterval(robotDialogTypeTimer);
+            clearTimeout(robotDialogButtonTimer);
             document.getElementById("robotDialogLayer").style.display = "none";
             roundTargetDialogPending = false;
             robotDialogContext = null;
             robotDialogMessages = [];
             robotDialogMessageIndex = 0;
+            robotDialogCanAdvance = false;
+            robotDialogOnComplete = null;
             document.getElementById("resRound").innerText = `${currentRound} / ${MAX_ROUNDS}`;
             document.getElementById("resLeftScore").innerText = playerData.leftScore;
             document.getElementById("resRightScore").innerText = playerData.rightScore;
@@ -2140,9 +2529,9 @@
             document.getElementById("pairingHint").style.display = "block";
             setTimeout(() => {
                 document.getElementById("introLayer").style.display = "none";
-                currentStage = 'PRACTICE';
+                currentStage = 'PRACTICE_TUTORIAL';
                 spawnPracticeObjects();
-                document.getElementById("practiceControlLayer").style.display = "flex";
+                showPracticeTutorial();
                 startBtn.disabled = false;
                 startBtn.innerText = "確認並進入操作練習";
                 document.getElementById("pairingHint").style.display = "none";
@@ -2285,13 +2674,17 @@
             }
         }
 
-        function openRobotDialogSequence(messages, context) {
-            if (roundTargetDialogPending || currentStage !== 'GAMING') return false;
+        function openRobotDialogSequence(messages, context, options = {}) {
+            const allowedStages = options.allowedStages || ["GAMING"];
+            if (roundTargetDialogPending || !allowedStages.includes(currentStage)) return false;
             resetParticipantInactivity();
             roundTargetDialogPending = true;
             robotDialogContext = context;
             robotDialogMessages = messages;
             robotDialogMessageIndex = 0;
+            robotDialogLogEnabled = options.log !== false;
+            robotDialogOnComplete = typeof options.onComplete === "function" ? options.onComplete : null;
+            robotDialogButtonDelayMs = options.buttonDelayMs ?? ROBOT_DIALOG_BUTTON_DELAY_MS;
             const layer = document.getElementById("robotDialogLayer");
             const portrait = document.getElementById("robotDialogPortrait");
             const name = document.getElementById("robotDialogName");
@@ -2301,7 +2694,6 @@
             portrait.src = robot.image;
             name.innerText = ROBOT_DISPLAY_NAME;
             layer.style.display = "block";
-            primaryBtn.style.display = "inline-block";
             secondaryBtn.style.display = "none";
             primaryBtn.innerText = "OK";
             primaryBtn.dataset.action = "ok";
@@ -2327,19 +2719,34 @@
 
         function typeRobotDialogText(message) {
             const text = document.getElementById("robotDialogText");
+            const primaryBtn = document.getElementById("helpOtherTeamBtn");
             clearInterval(robotDialogTypeTimer);
+            clearTimeout(robotDialogButtonTimer);
+            robotDialogCanAdvance = false;
+            primaryBtn.disabled = true;
+            primaryBtn.style.display = "inline-block";
+            primaryBtn.style.visibility = "hidden";
             text.innerText = "";
             let cursor = 0;
             robotDialogTypeTimer = setInterval(() => {
                 cursor++;
                 text.innerText = message.slice(0, cursor);
                 if (cursor >= message.length) clearInterval(robotDialogTypeTimer);
-            }, 24);
+            }, ROBOT_DIALOG_CHAR_DELAY_MS);
+            robotDialogButtonTimer = setTimeout(() => {
+                robotDialogCanAdvance = true;
+                primaryBtn.disabled = false;
+                primaryBtn.style.visibility = "visible";
+            }, robotDialogButtonDelayMs);
         }
 
         function resolveSecondRoundHelpDialog(decision) {
+            if (!robotDialogCanAdvance) return;
             clearInterval(robotDialogTypeTimer);
-            sendActionPayloadToGoogleForm(`ROUND${currentRound}_${robotDialogContext}_DIALOG_STEP_${robotDialogMessageIndex + 1}_${decision}`);
+            clearTimeout(robotDialogButtonTimer);
+            if (robotDialogLogEnabled) {
+                sendActionPayloadToGoogleForm(`ROUND${currentRound}_${robotDialogContext}_DIALOG_STEP_${robotDialogMessageIndex + 1}_${decision}`);
+            }
 
             if (robotDialogMessageIndex < robotDialogMessages.length - 1) {
                 robotDialogMessageIndex++;
@@ -2357,7 +2764,12 @@
             robotDialogContext = null;
             robotDialogMessages = [];
             robotDialogMessageIndex = 0;
+            robotDialogCanAdvance = false;
+            robotDialogLogEnabled = true;
+            const onComplete = robotDialogOnComplete;
+            robotDialogOnComplete = null;
             resetParticipantInactivity();
+            if (onComplete) onComplete();
         }
 
         function startAllocationAnimation() {
@@ -2491,6 +2903,7 @@
         practiceGuideImage.addEventListener("error", syncPracticeGuideImage);
         if (practiceGuideImage.complete) syncPracticeGuideImage();
 
+        renderIntroRobotAvatar();
         tryLoadBundledSurveyQuestions();
         requestAnimationFrame(mainLoop);
     </script>
