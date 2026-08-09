@@ -317,7 +317,7 @@
             <div class="intro-bottom">
                 <div class="input-group">
                     <label for="participantId">請輸入您的參與者編號 (Participant ID):</label>
-                    <input type="text" id="participantId" placeholder="例如: SUB_001" autocomplete="off">
+                    <input type="text" id="participantId" placeholder="例如: 1234" inputmode="numeric" maxlength="4" pattern="[1-4][0-9]{3}" autocomplete="off">
                 </div>
                 <div id="pairingHint">配對中...</div>
                 <button class="btn" id="startIntroBtn">確認並進入操作練習</button>
@@ -330,7 +330,7 @@
 
         <div id="robotDialogLayer">
             <div class="gal-character">
-                <img id="robotDialogPortrait" src="direct_happy.jpg" alt="機器人助手">
+                <img id="robotDialogPortrait" src="robot_more_direct_happy.gif" alt="橘隊機器人">
             </div>
             <div class="gal-dialog-box">
                 <div class="gal-nameplate" id="robotDialogName">機器人助手</div>
@@ -376,7 +376,6 @@
         </div>
     </div>
 
-    <script src="xlsx.full.min.js"></script>
     <script>
         // ==========================================
         // 請在此處填入您的 Google 表單 Entry IDs
@@ -387,12 +386,14 @@
         const ENTRY_SURVEY_DATA = "entry.1500336990";    // 問卷回答數據
 
         const CONDITION_ASSIGNMENT_MODE = "participantHash"; // 可改為 "random"
-        const ROBOT_DISPLAY_NAME = "橘隊機器人";
+        const ORANGE_ROBOT_DISPLAY_NAME = "橘隊機器人";
+        const BLUE_ROBOT_DISPLAY_NAME = "藍隊機器人";
+        const BLUE_PLAYER_DISPLAY_NAME = "5068";
         const ROBOT_CONDITIONS = [
-            { id: "direct_happy", label: "直視 / 正向", image: "direct_happy.jpg" },
-            { id: "direct_neutral", label: "直視 / 中性", image: "direct_neutral.jpg" },
-            { id: "averted_happy", label: "側視 / 正向", image: "averted_happy.jpg" },
-            { id: "averted_neutral", label: "側視 / 中性", image: "averted_neutral.jpg" }
+            { id: "more_direct_happy", label: "較多直視 / 開心", image: "robot_more_direct_happy.gif" },
+            { id: "less_direct_happy", label: "較少直視 / 開心", image: "robot_less_direct_happy.gif" },
+            { id: "more_direct_neutral", label: "較多直視 / 中性", image: "robot_more_direct_neutral.gif" },
+            { id: "less_direct_neutral", label: "較少直視 / 中性", image: "robot_less_direct_neutral.gif" }
         ];
         const ROUND_DISTRIBUTIONS = {
             1: { id: "round_1", opponent: 11, participant: 33 },
@@ -456,7 +457,7 @@
         const PRACTICE_RAW_COUNT = 18;
         const OVEN_CAPACITY = 4;
         const COOK_DURATION_MS = 5000;
-        const CAT_SPEED = 4.5;
+        const CAT_SPEED = 2.6;
         const BOT_SPEED = 2.6;
         const WALK_PHASE_STEP = 0.22;
         const REACH_DISTANCE = 32;
@@ -565,7 +566,7 @@
         imgYellow.src = "cooked_ball.png"; 
 
         const centerRobotImg = new Image();
-        centerRobotImg.src = "direct_happy.jpg";
+        centerRobotImg.src = ROBOT_CONDITIONS[0].image;
 
         const participantWalkImg = new Image();
         participantWalkImg.src = "orange1_sprite.png";
@@ -575,6 +576,10 @@
         otherWalkImg.src = "green1_sprite.png";
         const otherHoldImg = new Image();
         otherHoldImg.src = "green2_sprite.png";
+        const blueRobotIconImg = new Image();
+        blueRobotIconImg.src = "robot_icon_green.jpg";
+        const orangeRobotIconImg = new Image();
+        orangeRobotIconImg.src = "robot_icon_orange.jpg";
 
         function getAvatarTheme() {
             return HUMAN_AVATAR_THEMES[avatarThemeIndex] || HUMAN_AVATAR_THEMES[0];
@@ -650,6 +655,7 @@
                 : (worker.holdingBall ? otherHoldImg : otherWalkImg);
             ctx.save();
             ctx.translate(worker.x, worker.y + bob);
+            if (worker.facing === "right") ctx.scale(-1, 1);
             ctx.fillStyle = "rgba(79, 52, 34, 0.18)";
             ctx.beginPath();
             ctx.ellipse(0, 24, 22, 7, 0, 0, Math.PI * 2);
@@ -750,6 +756,7 @@
                 this.holdingBall = null;
                 this.walkPhase = 0;
                 this.moving = false;
+                this.facing = "left";
             }
             update() {
                 if (currentStage !== 'GAMING' && currentStage !== 'PRACTICE') {
@@ -766,6 +773,7 @@
 
                 if (activeAxis === "x" && horizontalDirection) {
                     this.x += horizontalDirection * CAT_SPEED;
+                    this.facing = horizontalDirection > 0 ? "right" : "left";
                 } else if (activeAxis === "y" && verticalDirection) {
                     this.y += verticalDirection * CAT_SPEED;
                 }
@@ -817,7 +825,9 @@
                     worker.moving = false;
                     return;
                 }
-                worker.x += Math.sign(dx) * Math.min(speed, Math.abs(dx));
+                const direction = Math.sign(dx);
+                worker.x += direction * Math.min(speed, Math.abs(dx));
+                if ("facing" in worker) worker.facing = direction > 0 ? "right" : "left";
             } else {
                 if (Math.abs(dy) < 4) {
                     worker.moveAxis = "x";
@@ -846,12 +856,9 @@
             return robotWorkBarrier.y + robotWorkBarrier.height + 32;
         }
 
+        // 場內工作角色的外觀固定；眼神與表情操弄只呈現在中央與對話框的 GIF。
         function getRobotAvatarExpression() {
-            const id = experimentCondition ? experimentCondition.robot.id : "direct_happy";
-            return {
-                gaze: id.includes("averted") ? "averted" : "direct",
-                mood: id.includes("neutral") ? "neutral" : "happy"
-            };
+            return { gaze: "direct", mood: "happy" };
         }
 
         function drawReferenceRobotHead(cx, cy, scale, accentColor, expression = getRobotAvatarExpression()) {
@@ -1181,6 +1188,30 @@
             drawEntityNameTag(worker.x, worker.y + 36, label, "#ffffff", 92);
         }
 
+        function drawRobotIconAvatar(worker, label, iconImg, accentColor) {
+            if (worker.y < getRobotWorkAreaTop()) return;
+            const bob = worker.moving ? Math.sin(worker.walkPhase) * 1.1 : 0;
+            ctx.save();
+            ctx.translate(worker.x, worker.y + bob);
+            ctx.fillStyle = "rgba(79, 52, 34, 0.18)";
+            ctx.beginPath();
+            ctx.ellipse(0, 23, 24, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (iconImg.complete && iconImg.naturalWidth !== 0) {
+                const size = 72;
+                ctx.drawImage(iconImg, -size / 2, -50, size, size);
+            } else {
+                ctx.restore();
+                drawOpponentRobot(worker, accentColor, label);
+                return;
+            }
+            if (worker.holdingBall) drawHeldSweetPotato(worker.holdingBall, -18, -18, 18);
+            ctx.restore();
+
+            drawEntityNameTag(worker.x, worker.y + 36, label, "#ffffff", 92);
+        }
+
         // ========================================================
         // 【AI Player 1：得分手】 行為邏輯完全參考 RightBlackCatBot
         // ========================================================
@@ -1189,6 +1220,7 @@
                 this.x = x; this.y = y; this.radius = 14; this.color = getHumanAppearance("other").accent; 
                 this.holdingBall = null; this.state = "SEARCH_YELLOW";
                 this.heading = 0; this.currentSpeed = 0; this.walkPhase = 0; this.moving = false;
+                this.facing = "left";
                 this.moveAxis = null; this.pauseFrames = 12 + Math.floor(Math.random() * 24);
                 this.randomPauseChance = 0.008;
                 this.randomPauseMin = 18;
@@ -1197,6 +1229,8 @@
                 this.idleTargetY = y;
                 this.idleFrames = 0;
                 this.idleWalking = false;
+                this.actionPauseUntil = 0;
+                this.pendingAction = null;
 
                 // 防卡死監控變數 (5秒不動檢測)
                 // this.lastRecordedX = x; this.lastRecordedY = y;
@@ -1206,6 +1240,23 @@
 
             update() {
                 if (currentStage !== 'GAMING') return;
+
+                if (this.pendingAction) {
+                    if (Date.now() < this.actionPauseUntil) {
+                        this.moving = false;
+                        return;
+                    }
+                    const action = this.pendingAction;
+                    this.pendingAction = null;
+                    action();
+                    this.actionPauseUntil = Date.now() + 1000;
+                    this.moving = false;
+                    return;
+                }
+                if (Date.now() < this.actionPauseUntil) {
+                    this.moving = false;
+                    return;
+                }
 
                 // --- 防卡死檢測 ---
                 // let distFromLastRecord = Math.hypot(this.x - this.lastRecordedX, this.y - this.lastRecordedY);
@@ -1239,11 +1290,15 @@
                         this.moveHumanLike(targetYellow.x, targetYellow.y);
                         if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
                             if (!targetYellow.isHeld) {
-                                this.holdingBall = targetYellow; targetYellow.isHeld = true;
-                                removeBallFromOven(targetYellow);
-                                targetYellow.outputOvenId = null;
-                                targetYellow.outputSlot = null;
-                                this.state = "GO_TO_ZONE";
+                                this.pauseBeforeAndAfter(() => {
+                                    if (targetYellow.isHeld) return;
+                                    this.holdingBall = targetYellow;
+                                    targetYellow.isHeld = true;
+                                    removeBallFromOven(targetYellow);
+                                    targetYellow.outputOvenId = null;
+                                    targetYellow.outputSlot = null;
+                                    this.state = "GO_TO_ZONE";
+                                });
                             }
                         }
                     } else {
@@ -1269,9 +1324,13 @@
                     this.moveHumanLike(tx, ty);
                     
                     if (Math.hypot(this.x - tx, this.y - ty) < 20) {
-                        let idx = balls.indexOf(this.holdingBall); if (idx > -1) balls.splice(idx, 1);
-                        playerData.leftScore++; 
-                        this.holdingBall = null; this.state = "SEARCH_YELLOW";
+                        this.pauseBeforeAndAfter(() => {
+                            const idx = balls.indexOf(this.holdingBall);
+                            if (idx > -1) balls.splice(idx, 1);
+                            playerData.leftScore++;
+                            this.holdingBall = null;
+                            this.state = "SEARCH_YELLOW";
+                        });
                     }
                 }
 
@@ -1284,9 +1343,15 @@
                 moveOpponentOrthogonally(this, tx, ty, speedScale);
             }
 
+            pauseBeforeAndAfter(action) {
+                if (this.pendingAction || Date.now() < this.actionPauseUntil) return;
+                this.pendingAction = action;
+                this.actionPauseUntil = Date.now() + 1000;
+                this.moving = false;
+            }
+
             draw() {
-                // drawOpponentDog(this, this.color, "另外一組玩家");
-                drawOpponentDog(this, this.color, "藍隊玩家");
+                drawOpponentDog(this, this.color, BLUE_PLAYER_DISPLAY_NAME);
             }
         }
 
@@ -1427,7 +1492,7 @@
             }
 
             draw() {
-                drawOpponentRobot(this, this.color, ROBOT_DISPLAY_NAME);
+                drawRobotIconAvatar(this, BLUE_ROBOT_DISPLAY_NAME, blueRobotIconImg, getRobotAccent("other"));
             }
         }
 
@@ -1504,7 +1569,7 @@
                 this.y = clamp(this.y, getRobotWorkAreaTop(), canvas.height - 45);
             }
             draw() {
-                drawOpponentRobot(this, this.color, ROBOT_DISPLAY_NAME);
+                drawRobotIconAvatar(this, ORANGE_ROBOT_DISPLAY_NAME, orangeRobotIconImg, getRobotAccent("participant"));
             }
         }
 
@@ -1574,11 +1639,10 @@
 
         function assignExperimentCondition() {
             if (experimentCondition) return experimentCondition;
-            const seed = CONDITION_ASSIGNMENT_MODE === "random"
-                ? Math.floor(Math.random() * 1000000)
-                : hashString(participantId || "ANONYMOUS");
+            const seed = hashString(participantId || "ANONYMOUS");
             assignAvatarTheme(seed);
-            const robot = ROBOT_CONDITIONS[seed % ROBOT_CONDITIONS.length];
+            const conditionIndex = Number(participantId.charAt(0)) - 1;
+            const robot = ROBOT_CONDITIONS[conditionIndex];
             experimentCondition = {
                 id: `${robot.id}_fixed_round_distribution`,
                 robot,
@@ -2517,7 +2581,10 @@
 
         document.getElementById("startIntroBtn").addEventListener("click", () => {
             let inputId = document.getElementById("participantId").value.trim();
-            if(!inputId) { alert("請輸入參與者編號。"); return; }
+            if (!/^[1-4]\d{3}$/.test(inputId)) {
+                alert("請輸入四位數參與者編號，且第一位數須為 1、2、3 或 4。");
+                return;
+            }
             participantId = inputId;
             if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {});
@@ -2557,50 +2624,9 @@
                 : "提交問卷，進入下一階段";
             buildPsychologySurvey();
             surveyStartedAt = Date.now();
-            document.getElementById("surveyLayer").style.display = "flex";
-        }
-
-        function extractSurveyQuestionsFromWorkbook(workbook) {
-            const firstSheetName = workbook.SheetNames[0];
-            if (!firstSheetName) return [];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], {
-                header: 1,
-                defval: ""
-            });
-            if (!rows.length) return [];
-
-            const headerAliases = ["題目", "問題", "question", "question text", "question_text"];
-            const firstRow = rows[0].map(value => String(value).trim().toLowerCase());
-            let questionColumn = firstRow.findIndex(value => headerAliases.includes(value));
-            let startRow = 1;
-            if (questionColumn < 0) {
-                questionColumn = 0;
-                startRow = headerAliases.includes(firstRow[0]) ? 1 : 0;
-            }
-
-            return rows
-                .slice(startRow)
-                .map(row => String(row[questionColumn] ?? "").trim())
-                .filter(question => question.length > 0);
-        }
-
-        async function importSurveyQuestionsFromArrayBuffer(arrayBuffer, sourceName) {
-            if (typeof XLSX === "undefined") throw new Error("Excel 解析程式未載入");
-            const workbook = XLSX.read(arrayBuffer, { type: "array" });
-            const importedQuestions = extractSurveyQuestionsFromWorkbook(workbook);
-            if (!importedQuestions.length) throw new Error("第一個工作表找不到題目");
-            surveyQuestions = mergeSurveyQuestionSets(importedQuestions, ROBOT_EVALUATION_QUESTIONS);
-            surveyQuestionSource = `${sourceName}+robot_eval`;
-        }
-
-        async function tryLoadBundledSurveyQuestions() {
-            try {
-                const response = await fetch("survey_questions.xlsx", { cache: "no-store" });
-                if (!response.ok) return;
-                await importSurveyQuestionsFromArrayBuffer(await response.arrayBuffer(), "survey_questions.xlsx");
-            } catch (error) {
-                console.warn("使用內建問卷題目:", error.message);
-            }
+            const surveyLayer = document.getElementById("surveyLayer");
+            surveyLayer.style.display = "flex";
+            surveyLayer.scrollTop = 0;
         }
 
         function collectSurveyAnswers() {
@@ -2692,7 +2718,7 @@
             const secondaryBtn = document.getElementById("focusOwnTeamBtn");
             const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
             portrait.src = robot.image;
-            name.innerText = ROBOT_DISPLAY_NAME;
+            name.innerText = ORANGE_ROBOT_DISPLAY_NAME;
             layer.style.display = "block";
             secondaryBtn.style.display = "none";
             primaryBtn.innerText = "OK";
@@ -2904,7 +2930,6 @@
         if (practiceGuideImage.complete) syncPracticeGuideImage();
 
         renderIntroRobotAvatar();
-        tryLoadBundledSurveyQuestions();
         requestAnimationFrame(mainLoop);
     </script>
 </body>
