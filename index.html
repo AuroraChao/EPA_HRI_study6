@@ -29,6 +29,23 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #34495e; color: #f8fafc; display: flex; flex-direction: column; z-index: 100;
         }
+        #consentLayer {
+            position: absolute; inset: 0; z-index: 120; display: flex; flex-direction: column;
+            background: #34495e; color: #f8fafc;
+        }
+        .consent-content {
+            flex: 1; overflow-y: auto; padding: 34px 54px; box-sizing: border-box;
+            font-size: 16px; line-height: 1.7;
+        }
+        .consent-content h2 { margin: 0 0 18px; text-align: center; color: #f1c40f; font-size: 28px; }
+        .consent-placeholder {
+            min-height: 220px; padding: 24px; box-sizing: border-box; border: 2px dashed rgba(248, 196, 113, 0.75);
+            border-radius: 8px; background: rgba(255, 255, 255, 0.08); color: #f8fafc;
+        }
+        .consent-bottom {
+            padding: 22px 42px; background: #2c3e50; display: flex; flex-direction: column;
+            align-items: center; gap: 12px;
+        }
         .intro-top {
             height: 75%; padding: 20px 40px; box-sizing: border-box;
             overflow-y: auto; line-height: 1.6; font-size: 15px; border-bottom: 2px solid #2c3e50;
@@ -36,10 +53,7 @@
         .intro-instructions p {
             margin: 0 0 12px; font-size: 16px; line-height: 1.65; color: #f8fafc;
         }
-        .intro-role-panel {
-            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px; margin: 12px 0 14px;
-        }
+        .intro-role-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin: 18px 0; }
         .intro-role-card {
             display: flex; align-items: center; gap: 14px;
             min-height: 128px; padding: 12px 14px; box-sizing: border-box;
@@ -114,8 +128,9 @@
         .survey-title { font-size: 26px; color: #f1c40f; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #34495e; padding-bottom: 10px;}
         .question-block { background: #34495e; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
         .question-text { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #fff; }
-        .options-group { display: flex; flex-direction: column; gap: 8px; }
-        .option-item { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; color: #ecf0f1; }
+        .options-group { display: flex; align-items: stretch; justify-content: space-between; gap: 8px; }
+        .option-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 6px; font-size: 12px; text-align: center; white-space: pre-line; cursor: pointer; color: #ecf0f1; background: rgba(255, 255, 255, 0.08); }
+        .option-item:hover { background: rgba(248, 196, 113, 0.18); }
         .option-item input { cursor: pointer; }
 
         #thanksLayer {
@@ -275,52 +290,44 @@
                 <button class="btn" id="confirmPracticeCompleteBtn" type="button">確認</button>
             </div>
         </div>
+
+        <div id="consentLayer">
+            <div class="consent-content">
+                <h2>實驗參與同意書</h2>
+                <div class="consent-placeholder">補參與同意書</div>
+            </div>
+            <div class="consent-bottom">
+                <div class="input-group">
+                    <label for="participantId">請輸入您的參與者編號 (Participant ID):</label>
+                    <input type="text" id="participantId" placeholder="例如: 1234" inputmode="numeric" maxlength="4" pattern="[1-4][0-9]{3}" autocomplete="off">
+                </div>
+                <button class="btn" id="agreeConsentBtn">同意參與實驗</button>
+            </div>
+        </div>
         
         <div id="introLayer">
             <div class="intro-top">
                 <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">協作實驗：地瓜烘烤任務</h2>
                 <div class="intro-instructions">
-                    <p>您好！這是一個烤地瓜的遊戲，在這個遊戲當中，請您盡可能和機器人助手合作，在時間內完成最多烤地瓜。</p>
-                    <p>您的任務為操作右方畫面中的人物，將籃子裡的地瓜放在烤盤上。</p>
+                    <p>謝謝您參與實驗！這是一個分組烤地瓜的遊戲，遊戲的目標是要送出烤好的地瓜，愈多愈好。</p>
+                    <p>一組至少要送出 10 顆烤地瓜，才能獲得最低實驗報酬；每多送一顆，獎勵就多一單位。遊戲總共三回合，最終實驗報酬將會是三回合得分的平均，但只要有一回合沒有達 10 顆最低標準，便無法獲得任何實驗報酬。</p>
+                    <p>送出的烤地瓜必須是熟的，您需要和隊友一起把生地瓜從籃子裡拿到烤箱，再烤箱烤 5 秒，地瓜就會熟。</p>
                     <div class="intro-role-panel">
                         <div class="intro-role-card">
                             <div class="intro-role-visual">
-                                <img id="introParticipantAvatar" src="green1_sprite.png" alt="受試者操作角色">
+                                <img id="introParticipantAvatar" src="orange1_sprite.svg" alt="受試者操作角色">
                             </div>
                             <div class="intro-role-copy">
                                 <div class="intro-role-title">您的操作角色</div>
-                                <p>這是您在遊戲中操作的 avatar。請操作這個角色拿取地瓜、放到烤盤，並把烤好的地瓜送到上方得分區。</p>
+                                <p>這是您在遊戲中操作的角色。</p>
                             </div>
                         </div>
-                        <div class="intro-role-card">
-                            <div class="intro-role-visual">
-                                <canvas id="introRobotAvatarCanvas" width="140" height="140" aria-label="機器人助手遊戲角色"></canvas>
-                            </div>
-                            <div class="intro-role-copy">
-                                <div class="intro-role-title">機器人助手的遊戲角色</div>
-                                <p>在遊戲的中間下方是機器人助手，他會操作這個 avatar 與您合作，將烤好的地瓜送上窗台。</p>
-                            </div>
-                        </div>
-                    </div>
-                    <p>左方畫面則是另外一組與您連線的玩家，他們的任務也是在時間內盡可能完成最多烤地瓜。</p>
-                    <p>完成的地瓜數量（得分）將會呈現在上方。</p>
-                    <p><strong>每回合完成 10 顆烤地瓜，就能達到獲得報酬的標準；超過 10 顆後，完成越多烤地瓜，可以獲得越多參與獎勵。</strong></p>
-                    <p>如果另外一組玩家缺少地瓜，您也可以把烤好的地瓜送到另外一組玩家的得分區或放在他們面前，幫助他們繼續完成任務。</p>
-                    <div class="intro-operation">
-                        <p><strong>操作方法為：</strong></p>
-                        <p>使用按鍵的上、下、左、右來進行移動</p>
-                        <p>使用按鍵的 space 來「拿取」與「放下」</p>
-                        <p>您可以在所有畫面中自由走動與隨意進行動作</p>
                     </div>
                 </div>
             </div>
             <div class="intro-bottom">
-                <div class="input-group">
-                    <label for="participantId">請輸入您的參與者編號 (Participant ID):</label>
-                    <input type="text" id="participantId" placeholder="例如: 1234" inputmode="numeric" maxlength="4" pattern="[1-4][0-9]{3}" autocomplete="off">
-                </div>
                 <div id="pairingHint">配對中...</div>
-                <button class="btn" id="startIntroBtn">確認並進入操作練習</button>
+                <button class="btn" id="startIntroBtn">了解</button>
             </div>
         </div>
 
@@ -390,32 +397,17 @@
         const BLUE_ROBOT_DISPLAY_NAME = "藍隊機器人";
         const BLUE_PLAYER_DISPLAY_NAME = "5068";
         const ROBOT_CONDITIONS = [
-            { id: "more_direct_happy", label: "較多直視 / 開心", image: "robot_more_direct_happy.gif" },
-            { id: "less_direct_happy", label: "較少直視 / 開心", image: "robot_less_direct_happy.gif" },
-            { id: "more_direct_neutral", label: "較多直視 / 中性", image: "robot_more_direct_neutral.gif" },
-            { id: "less_direct_neutral", label: "較少直視 / 中性", image: "robot_less_direct_neutral.gif" }
+            { id: "more_direct_happy", label: "較多直視 / 開心", image: "robot_more_direct_happy.gif", noTalkImage: "robot_more_direct_happy_notalk.gif" },
+            { id: "less_direct_happy", label: "較少直視 / 開心", image: "robot_less_direct_happy.gif", noTalkImage: "robot_less_direct_happy_notalk.gif" },
+            { id: "more_direct_neutral", label: "較多直視 / 中性", image: "robot_more_direct_neutral.gif", noTalkImage: "robot_more_direct_neutral_notalk.gif" },
+            { id: "less_direct_neutral", label: "較少直視 / 中性", image: "robot_less_direct_neutral.gif", noTalkImage: "robot_less_direct_neutral_notalk.gif" }
         ];
         const ROUND_DISTRIBUTIONS = {
-            1: { id: "round_1", opponent: 11, participant: 33 },
-            2: { id: "round_2", opponent: 13, participant: 39 },
-            3: { id: "round_3", opponent: 9, participant: 27 }
+            1: { id: "round_1", opponent: 12, participant: 46 },
+            2: { id: "round_2", opponent: 10, participant: 38 },
+            3: { id: "round_3", opponent: 10, participant: 42 }
         };
-        const WHEEL_VALUES = [9, 11, 13, 18, 21, 24, 27, 30, 33, 36, 39, 42];
-        const HUMAN_AVATAR_THEMES = [
-            {
-                participant: { shirt: "#f28c45", pants: "#416f9f", skin: "#ffd1a8", outline: "#7a543b", accent: "#ef9b51" },
-                other: { shirt: "#55b7a4", pants: "#7666b5", skin: "#ffd1a8", outline: "#7a543b", accent: "#55b7a4" },
-                participantRobot: "#e69545",
-                otherRobot: "#1abc9c"
-            },
-            {
-                participant: { shirt: "#55b7a4", pants: "#7666b5", skin: "#ffd1a8", outline: "#7a543b", accent: "#55b7a4" },
-                other: { shirt: "#f28c45", pants: "#416f9f", skin: "#ffd1a8", outline: "#7a543b", accent: "#ef9b51" },
-                participantRobot: "#1abc9c",
-                otherRobot: "#e69545"
-            }
-        ];
-        let avatarThemeIndex = 0;
+        const WHEEL_VALUES = [10, 12, 14, 18, 22, 24, 28, 32, 36, 38, 42, 46];
         const ROBOT_EVALUATION_QUESTIONS = [
             "機器人助手在本回合中讓我覺得可靠。",
             "機器人助手的協助符合任務需求。",
@@ -457,12 +449,18 @@
         const PRACTICE_RAW_COUNT = 18;
         const OVEN_CAPACITY = 4;
         const COOK_DURATION_MS = 5000;
-        const CAT_SPEED = 2.6;
-        const BOT_SPEED = 2.6;
+        const CAT_SPEED = 2.8;
+        const BOT_SPEED = 2.8;
         const WALK_PHASE_STEP = 0.22;
         const REACH_DISTANCE = 32;
-        const ROBOT_DIALOG_CHAR_DELAY_MS = 46;
-        const ROBOT_DIALOG_BUTTON_DELAY_MS = 3000;
+        const ROBOT_DIALOG_CHAR_DELAY_MS = 90;
+        const ROBOT_DIALOG_BUTTON_DELAY_MS = 1000;
+        const ROBOT_TALKING_GIF_DURATION_MS = {
+            more_direct_happy: 4450,
+            more_direct_neutral: 4450,
+            less_direct_happy: 7650,
+            less_direct_neutral: 7650
+        };
         
         let currentStage = 'INTRO'; 
         let currentRound = 1;
@@ -482,10 +480,13 @@
         let experimentCondition = null;
         let allocationState = null;
         let practiceTargetCompleted = false;
+        let practiceOwnScorePromptShown = false;
+        let practiceOtherScorePromptShown = false;
         let roundTargetDialogPending = false;
         let roundTargetReached = false;
         let roundEndReason = "timeout";
-        let robotHelpDecision = "not_asked";
+        let getTen = 0;
+        let promoteHelp = 0;
         let robotDialogTypeTimer = null;
         let robotDialogContext = null;
         let robotDialogMessages = [];
@@ -569,34 +570,26 @@
         centerRobotImg.src = ROBOT_CONDITIONS[0].image;
 
         const participantWalkImg = new Image();
-        participantWalkImg.src = "orange1_sprite.png";
+        participantWalkImg.src = "orange1_sprite.svg";
         const participantHoldImg = new Image();
-        participantHoldImg.src = "orange2_sprite.png";
+        participantHoldImg.src = "orange2_sprite.svg";
         const otherWalkImg = new Image();
-        otherWalkImg.src = "green1_sprite.png";
+        otherWalkImg.src = "green1_sprite.svg";
         const otherHoldImg = new Image();
-        otherHoldImg.src = "green2_sprite.png";
+        otherHoldImg.src = "green2_sprite.svg";
         const blueRobotIconImg = new Image();
-        blueRobotIconImg.src = "robot_icon_green.png";
+        blueRobotIconImg.src = "robot_icon_green.jpg";
         const orangeRobotIconImg = new Image();
-        orangeRobotIconImg.src = "robot_icon_orange.png";
-
-        function getAvatarTheme() {
-            return HUMAN_AVATAR_THEMES[avatarThemeIndex] || HUMAN_AVATAR_THEMES[0];
-        }
-
-        function assignAvatarTheme(seed) {
-            avatarThemeIndex = seed % HUMAN_AVATAR_THEMES.length;
-        }
+        orangeRobotIconImg.src = "robot_icon_orange.jpg";
 
         function getHumanAppearance(role) {
-            const theme = getAvatarTheme();
-            return role === "participant" ? theme.participant : theme.other;
+            return role === "participant"
+                ? { shirt: "#f28c45", pants: "#416f9f", skin: "#ffd1a8", outline: "#7a543b", accent: "#ef9b51" }
+                : { shirt: "#55b7a4", pants: "#7666b5", skin: "#ffd1a8", outline: "#7a543b", accent: "#55b7a4" };
         }
 
         function getRobotAccent(role) {
-            const theme = getAvatarTheme();
-            return role === "participant" ? theme.participantRobot : theme.otherRobot;
+            return role === "participant" ? "#e69545" : "#1abc9c";
         }
 
         function getParticipantDisplayName() {
@@ -1384,6 +1377,20 @@
             update() {
                 if (currentStage !== 'GAMING') return;
 
+                const leftHasRawPotatoToDeliver = balls.some(b =>
+                    !b.isHeld &&
+                    b.x < midX &&
+                    b.status === "purple" &&
+                    !ovens.some(o => o.slots.includes(b))
+                );
+                if (!this.holdingBall && !leftHasRawPotatoToDeliver) {
+                    this.state = "IDLE_ROAM";
+                    this.antiStuckActive = false;
+                    this.immobileFrames = 0;
+                    this.moving = false;
+                    return;
+                }
+
                 // --- 防卡死檢測 ---
                 let distFromLastRecord = Math.hypot(this.x - this.lastRecordedX, this.y - this.lastRecordedY);
                 if (distFromLastRecord < 0.5) { this.immobileFrames++; } else { this.immobileFrames = 0; }
@@ -1628,28 +1635,18 @@
             }
         }
 
-        function hashString(value) {
-            let hash = 0;
-            for (let i = 0; i < value.length; i++) {
-                hash = ((hash << 5) - hash) + value.charCodeAt(i);
-                hash |= 0;
-            }
-            return Math.abs(hash);
-        }
-
         function assignExperimentCondition() {
             if (experimentCondition) return experimentCondition;
-            const seed = hashString(participantId || "ANONYMOUS");
-            assignAvatarTheme(seed);
             const conditionIndex = Number(participantId.charAt(0)) - 1;
             const robot = ROBOT_CONDITIONS[conditionIndex];
             experimentCondition = {
                 id: `${robot.id}_fixed_round_distribution`,
                 robot,
-                distributionMode: "fixed_by_round",
-                avatarTheme: avatarThemeIndex
+                distributionMode: "fixed_by_round"
             };
             centerRobotImg.src = robot.image;
+            const introRobot = document.getElementById("introRobotAvatar");
+            if (introRobot) introRobot.src = robot.image;
             playerData.condition = experimentCondition.id;
             return experimentCondition;
         }
@@ -1677,7 +1674,8 @@
             robotDialogOnComplete = null;
             round2OpponentScoredOutAt = null;
             round2ScarcityDialogShown = false;
-            robotHelpDecision = "not_asked";
+            getTen = 0;
+            promoteHelp = 0;
             donatedPotatoes = 0;
             currentPickupSide = null;
             playerData = {
@@ -1760,6 +1758,8 @@
             idCounter = 1;
             resetRoundData();
             practiceTargetCompleted = false;
+            practiceOwnScorePromptShown = false;
+            practiceOtherScorePromptShown = false;
             cat.holdingBall = null;
             cat.x = playerStart.x;
             cat.y = playerStart.y;
@@ -1814,29 +1814,8 @@
             const badge = document.getElementById("practiceStepBadge");
             const text = document.getElementById("practiceStepText");
             const endBtn = document.getElementById("endPracticeBtn");
-            const score = Math.min(playerData.rightScore, PRACTICE_TARGET_SCORE);
-            const cookedReady = balls.some(b => !b.isHeld && b.status === "yellow");
-            const holdingCooked = cat.holdingBall && cat.holdingBall.status === "yellow";
-            const cookingNow = ovens.some(o => o.side === "right" && o.slots.some(b => b.status === "purple"));
-            const freeMoveReminder = "\n\n您可以試著在畫面中自由移動，若您將地瓜放在另一位玩家的得分區，則是對方得分。\n另外，當您把烤好的地瓜放在另一位玩家的移動區域內時，對方也可以拿取您放置的地瓜。";
-            const maybeAddFreeMoveReminder = message => score >= 3 && !practiceTargetCompleted
-                ? message + freeMoveReminder
-                : message;
-
-            badge.innerText = practiceTargetCompleted
-                ? "練習完成"
-                : `練習目標 ${score} / ${PRACTICE_TARGET_SCORE}`;
-            if (practiceTargetCompleted) {
-                text.innerText = `已達成 ${PRACTICE_TARGET_SCORE} 顆目標，請確認後進入第一回合。`;
-            } else if (holdingCooked) {
-                text.innerText = maybeAddFreeMoveReminder("很好，請把手上的黃色熟地瓜送到上方橘色得分區，按 Space 放下得分。");
-            } else if (cookedReady) {
-                text.innerText = maybeAddFreeMoveReminder("有黃色熟地瓜烤好了。請靠近烤箱按 Space 拿起，再送到上方橘色得分區。");
-            } else if (cookingNow) {
-                text.innerText = maybeAddFreeMoveReminder("機器人助手正在送原料，烤箱正在加熱。請等待黃色熟地瓜烤好後留在烤箱內。");
-            } else {
-                text.innerText = maybeAddFreeMoveReminder("請觀察機器人助手把紫色生地瓜送進烤箱；您的任務是把烤好的黃色地瓜送到上方橘色得分區。");
-            }
+            badge.innerText = `練習目標 ${Math.min(playerData.rightScore, PRACTICE_TARGET_SCORE)} / ${PRACTICE_TARGET_SCORE}`;
+            text.innerText = "請依機器人助手的指示完成練習。";
             endBtn.style.display = "none";
             endBtn.disabled = true;
         }
@@ -1851,7 +1830,8 @@
 
             const cookedTargets = balls.filter(b => !b.isHeld && b.status === "yellow");
             if (cat.holdingBall && cat.holdingBall.status === "yellow") {
-                ctx.strokeRect(rightZone.x - 8, rightZone.y - 8, rightZone.width + 16, rightZone.height + 16);
+                const targetZone = practiceOwnScorePromptShown && !practiceOtherScorePromptShown ? leftZone : rightZone;
+                ctx.strokeRect(targetZone.x - 8, targetZone.y - 8, targetZone.width + 16, targetZone.height + 16);
             } else if (cookedTargets.length > 0) {
                 cookedTargets.slice(0, 4).forEach(b => {
                     ctx.beginPath();
@@ -1868,7 +1848,7 @@
 
         function checkPracticeTarget() {
             if (currentStage !== 'PRACTICE' || practiceTargetCompleted) return;
-            if (playerData.rightScore >= PRACTICE_TARGET_SCORE) completePracticeTarget();
+            if (playerData.rightScore >= PRACTICE_TARGET_SCORE && !roundTargetDialogPending) showPracticeCompleteDialog();
         }
 
         function completePracticeTarget() {
@@ -1877,7 +1857,7 @@
             updatePracticeGuide(true);
             document.getElementById("practiceControlLayer").style.display = "none";
             currentStage = 'PRACTICE_COMPLETE';
-            document.getElementById("practiceCompleteLayer").style.display = "flex";
+            confirmPracticeComplete();
         }
 
         function confirmPracticeComplete() {
@@ -1891,25 +1871,21 @@
             balls = [];
             ovens.forEach(o => o.slots = []);
             assignExperimentCondition();
-            showWaitingThenStartRound();
+            showWaitingThenStartRound(30);
         }
 
         function getPracticeTutorialMessages() {
             return [
-                "您好！我是您的機器人助手，接下來我會來說明這個遊戲進行的方式。",
-                `接下來是練習階段。練習沒有時間限制，目標是完成 ${PRACTICE_TARGET_SCORE} 顆烤地瓜。`,
-                "我們會先分工合作：機器人助手會在下方工作區把紫色生地瓜送進烤箱。",
-                `烤箱一次最多可以放 ${OVEN_CAPACITY} 顆地瓜。地瓜烤好後會留在烤箱內，等您靠近拿起。`,
-                "您的任務是操作右方人物，靠近黃色熟地瓜按 Space 拿起，再送到上方橘色得分區按 Space 放下。",
-                "您可以試著在畫面中自由移動。若您將地瓜放在另一位玩家的得分區，則是對方得分。\n另外，當您把烤好的地瓜放在另一位玩家的移動區域內時，對方也可以拿取您放置的地瓜。",
-                "準備好後，按 OK 開始練習。"
+                "嗨！我是你的隊友，我們是橘隊的。",
+                "我會操作右下角那個小機器人，而你操作的是上面那個橘色的角色。",
+                "我提議這樣分工，我負責把生地瓜送到烤箱；等地瓜烤好，換你把地瓜送到得分區。",
+                "你可以透過鍵盤上的上下左右按鍵來移動，要拿取和放下地瓜就按空白鍵。我先送地瓜到烤箱，你也試試看將烤好的地瓜送到得分區吧！"
             ];
         }
 
         function startPracticeRoundAfterTutorial() {
             currentStage = 'PRACTICE';
-            updatePracticeGuide(true);
-            document.getElementById("practiceControlLayer").style.display = "flex";
+            document.getElementById("practiceControlLayer").style.display = "none";
             resetParticipantInactivity();
         }
 
@@ -1920,6 +1896,32 @@
                 allowedStages: ["PRACTICE_TUTORIAL"],
                 log: false,
                 onComplete: startPracticeRoundAfterTutorial
+            });
+        }
+
+        function showPracticeOwnScoreDialog() {
+            if (practiceOwnScorePromptShown) return;
+            practiceOwnScorePromptShown = true;
+            openRobotDialogSequence([
+                "做得好！這樣我們就得一分了！接下來試著將地瓜送到藍色的得分區吧！"
+            ], "practice_own_score", { allowedStages: ["PRACTICE"], log: false });
+        }
+
+        function showPracticeOtherScoreDialog() {
+            if (practiceOtherScorePromptShown) return;
+            practiceOtherScorePromptShown = true;
+            openRobotDialogSequence([
+                "你看，如果把地瓜送到藍色得分區，就變成另一隊得分囉~ 接下來再試著多送幾顆地瓜吧！"
+            ], "practice_other_score", { allowedStages: ["PRACTICE"], log: false });
+        }
+
+        function showPracticeCompleteDialog() {
+            openRobotDialogSequence([
+                "太棒了，你完成練習了。接下來我們就等另一隊的人進來，一起做正式實驗吧！"
+            ], "practice_complete", {
+                allowedStages: ["PRACTICE"],
+                log: false,
+                onComplete: completePracticeTarget
             });
         }
 
@@ -1956,10 +1958,7 @@
             let leftCount = getLeftRemainingCount();
             let rightCount = getRightRemainingCount();
             let totalScore = playerData.leftScore + playerData.rightScore;
-            let conditionId = experimentCondition ? experimentCondition.id : "unassigned";
-            let avatarTheme = experimentCondition ? experimentCondition.avatarTheme : avatarThemeIndex;
-
-            let payload = `Round:${currentRound},Condition:${conditionId},AvatarTheme:${avatarTheme},HelpDecision:${robotHelpDecision},Time:${elapsed},X:${Math.round(cat.x)},Y:${Math.round(cat.y)},Act:${actionType},L_Score:${playerData.leftScore},R_Score:${playerData.rightScore},PlayerDeliveries:${playerData.playerDeliveredScore},TotalScore:${totalScore},R_BallLeft:${rightCount},L_BallLeft:${leftCount}`;
+            let payload = `Round:${currentRound},GetTen:${getTen},PromoteHelp:${promoteHelp},Time:${elapsed},X:${Math.round(cat.x)},Y:${Math.round(cat.y)},Act:${actionType},L_Score:${playerData.leftScore},R_Score:${playerData.rightScore},TotalScore:${totalScore},R_BallLeft:${rightCount},L_BallLeft:${leftCount}`;
             console.log("📡 行為追蹤串流:", payload);
 
             if (GOOGLE_FORM_URL.includes("XXXXXXXXXXXXX")) return;
@@ -2006,72 +2005,22 @@
                 else if (currentPickupSide === "right" && dropSide === "right") finalActionType = "stayHere";
                 else if (currentPickupSide === "left" && dropSide === "left") finalActionType = "stayThere";
 
-                let insideOven = null;
-                let closestOvenDistance = Infinity;
-                ovens.forEach(o => {
-                    const centerX = o.x + o.width / 2;
-                    const centerY = o.y + o.height / 2;
-                    const distanceToOven = Math.hypot(b.x - centerX, b.y - centerY);
-                    const insideRect = b.x >= o.x && b.x <= o.x + o.width && b.y >= o.y && b.y <= o.y + o.height;
-                    if ((insideRect || distanceToOven < 58) && distanceToOven < closestOvenDistance) {
-                        insideOven = o;
-                        closestOvenDistance = distanceToOven;
-                    }
-                });
-
-                if (insideOven) {
-                    if (b.status !== "purple") {
-                        b.x = cat.x;
-                        b.y = cat.y + 24;
-                        sendActionPayloadToGoogleForm(`${finalActionType}_CookedToOvenIgnored`);
-                        updatePracticeGuide();
-                        return;
-                    }
-                    if (b.originSide !== insideOven.side) {
-                        alert("⚠️ 生地瓜只能放進同隊烤箱；請從上方通道運送烤好的黃色地瓜。");
-                        b.x = cat.x;
-                        b.y = cat.y + 24;
-                        sendActionPayloadToGoogleForm(`${finalActionType}_CrossTeamOvenDenied`);
-                        updatePracticeGuide();
-                        return;
-                    }
-                    if (insideOven.slots.length >= OVEN_CAPACITY) {
-                        alert("烤箱已滿！");
-                        b.y = insideOven.y + insideOven.height + 20; 
-                        sendActionPayloadToGoogleForm(`${finalActionType}_OvenFull`);
-                        return;
-                    }
-                    
-                    placeBallInOven(b, insideOven);
-                    
-                    sendActionPayloadToGoogleForm(`${finalActionType}_PutToOven`);
-                    return;
-                }
-
                 let inRightZone = (b.x >= rightZone.x && b.x <= rightZone.x + rightZone.width && b.y >= rightZone.y && b.y <= rightZone.y + rightZone.height);
                 let inLeftZone = (b.x >= leftZone.x && b.x <= leftZone.x + leftZone.width && b.y >= leftZone.y && b.y <= leftZone.y + leftZone.height);
 
                 if (inLeftZone) {
-                    if (b.status === "yellow") {
-                        playerData.leftScore++;
-                        if (currentRound === 2) donatedPotatoes++;
-                        let idx = balls.indexOf(b); if (idx > -1) balls.splice(idx, 1);
-                        sendActionPayloadToGoogleForm(`${finalActionType}_ScoreOtherTeamSuccess`);
-                    } else {
-                        alert("❌ 紫色生地瓜放入不得分！請先放進烤箱加熱 5 秒。");
-                        sendActionPayloadToGoogleForm(`${finalActionType}_ScoreOtherTeamFailedPurple`);
-                    }
+                    playerData.leftScore++;
+                    if (currentRound === 2) donatedPotatoes++;
+                    let idx = balls.indexOf(b); if (idx > -1) balls.splice(idx, 1);
+                    sendActionPayloadToGoogleForm(`${finalActionType}_ScoreOtherTeamSuccess`);
+                    if (currentStage === 'PRACTICE') showPracticeOtherScoreDialog();
                 } 
                 else if (inRightZone) {
-                    if (b.status === "yellow") {
-                        playerData.rightScore++;
-                        playerData.playerDeliveredScore++;
-                        let idx = balls.indexOf(b); if (idx > -1) balls.splice(idx, 1);
-                        sendActionPayloadToGoogleForm(`${finalActionType}_ScoreSuccess`);
-                    } else {
-                        alert("❌ 紫色生球放入不得分！請先放進烤箱加熱 5 秒。");
-                        sendActionPayloadToGoogleForm(`${finalActionType}_ScoreFailedPurple`);
-                    }
+                    playerData.rightScore++;
+                    playerData.playerDeliveredScore++;
+                    let idx = balls.indexOf(b); if (idx > -1) balls.splice(idx, 1);
+                    sendActionPayloadToGoogleForm(`${finalActionType}_ScoreSuccess`);
+                    if (currentStage === 'PRACTICE') showPracticeOwnScoreDialog();
                 } else {
                     sendActionPayloadToGoogleForm(`${finalActionType}_DropOnGround`);
                 }
@@ -2249,7 +2198,7 @@
 
         function drawBottomRobot() {
             ctx.save();
-            const panelW = 240;
+            const panelW = 180;
             const panelH = 146;
             const panelX = midX - panelW / 2;
             const panelY = canvas.height - panelH - 10;
@@ -2579,7 +2528,7 @@
             sendActionPayloadToGoogleForm(`ROUND_END_SUMMARY_ROUND_${currentRound}`);
         }
 
-        document.getElementById("startIntroBtn").addEventListener("click", () => {
+        document.getElementById("agreeConsentBtn").addEventListener("click", () => {
             let inputId = document.getElementById("participantId").value.trim();
             if (!/^[1-4]\d{3}$/.test(inputId)) {
                 alert("請輸入四位數參與者編號，且第一位數須為 1、2、3 或 4。");
@@ -2590,19 +2539,14 @@
                 document.documentElement.requestFullscreen().catch(() => {});
             }
             assignExperimentCondition();
-            const startBtn = document.getElementById("startIntroBtn");
-            startBtn.disabled = true;
-            startBtn.innerText = "配對中...";
-            document.getElementById("pairingHint").style.display = "block";
-            setTimeout(() => {
-                document.getElementById("introLayer").style.display = "none";
-                currentStage = 'PRACTICE_TUTORIAL';
-                spawnPracticeObjects();
-                showPracticeTutorial();
-                startBtn.disabled = false;
-                startBtn.innerText = "確認並進入操作練習";
-                document.getElementById("pairingHint").style.display = "none";
-            }, 1200);
+            document.getElementById("consentLayer").style.display = "none";
+        });
+
+        document.getElementById("startIntroBtn").addEventListener("click", () => {
+            document.getElementById("introLayer").style.display = "none";
+            currentStage = 'PRACTICE_TUTORIAL';
+            spawnPracticeObjects();
+            showPracticeTutorial();
         });
 
         document.getElementById("endPracticeBtn").addEventListener("click", () => {
@@ -2632,9 +2576,11 @@
         function collectSurveyAnswers() {
             let answers = [];
             for (let i = 1; i <= surveyQuestions.length; i++) {
-                let radios = document.getElementsByName(`question_${i}`);
+                const radios = document.getElementsByName(`question_${i}`);
                 let checkedValue = null;
-                for (let r of radios) { if (r.checked) { checkedValue = r.value; break; } }
+                for (const radio of radios) {
+                    if (radio.checked) { checkedValue = radio.value; break; }
+                }
                 if (checkedValue === null) return null;
                 answers.push(`Q${i}:${checkedValue}`);
             }
@@ -2672,13 +2618,15 @@
             return ["第一回合開始", "第二回合開始", "第三回合開始"][round - 1] || `第 ${round} 回合開始`;
         }
 
-        function showWaitingThenStartRound() {
+        function showWaitingThenStartRound(forcedWaitSeconds = null) {
             const waitLayer = document.getElementById("waitingLayer");
             const waitText = document.getElementById("waitingLayerText");
             waitLayer.style.display = "flex";
             currentStage = 'WAITING';
             clearTimeout(waitingTimer);
-            const waitSeconds = getPreGameWaitSeconds(lastSurveyResponseSeconds);
+            const waitSeconds = forcedWaitSeconds === null
+                ? getPreGameWaitSeconds(lastSurveyResponseSeconds)
+                : forcedWaitSeconds;
 
             const showProcessingThenStart = () => {
                 waitText.innerText = "系統處理中，請稍候";
@@ -2746,9 +2694,12 @@
         function typeRobotDialogText(message) {
             const text = document.getElementById("robotDialogText");
             const primaryBtn = document.getElementById("helpOtherTeamBtn");
+            const portrait = document.getElementById("robotDialogPortrait");
+            const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
             clearInterval(robotDialogTypeTimer);
             clearTimeout(robotDialogButtonTimer);
             robotDialogCanAdvance = false;
+            portrait.src = robot.image;
             primaryBtn.disabled = true;
             primaryBtn.style.display = "inline-block";
             primaryBtn.style.visibility = "hidden";
@@ -2759,17 +2710,23 @@
                 text.innerText = message.slice(0, cursor);
                 if (cursor >= message.length) clearInterval(robotDialogTypeTimer);
             }, ROBOT_DIALOG_CHAR_DELAY_MS);
+            const fullTextDelay = message.length * ROBOT_DIALOG_CHAR_DELAY_MS;
+            const talkingGifDuration = ROBOT_TALKING_GIF_DURATION_MS[robot.id] || 0;
             robotDialogButtonTimer = setTimeout(() => {
+                portrait.src = robot.noTalkImage;
                 robotDialogCanAdvance = true;
                 primaryBtn.disabled = false;
                 primaryBtn.style.visibility = "visible";
-            }, robotDialogButtonDelayMs);
+            }, Math.max(fullTextDelay + robotDialogButtonDelayMs, talkingGifDuration));
         }
 
         function resolveSecondRoundHelpDialog(decision) {
             if (!robotDialogCanAdvance) return;
             clearInterval(robotDialogTypeTimer);
             clearTimeout(robotDialogButtonTimer);
+            const isFinalDialogStep = robotDialogMessageIndex === robotDialogMessages.length - 1;
+            if (isFinalDialogStep && robotDialogContext === "target") getTen = 1;
+            if (isFinalDialogStep && robotDialogContext === "round2_scarcity") promoteHelp = 1;
             if (robotDialogLogEnabled) {
                 sendActionPayloadToGoogleForm(`ROUND${currentRound}_${robotDialogContext}_DIALOG_STEP_${robotDialogMessageIndex + 1}_${decision}`);
             }
@@ -2780,11 +2737,6 @@
                 return;
             }
 
-            if (robotDialogContext === "round2_scarcity") {
-                robotHelpDecision = "scarcity_help_prompt_seen";
-            } else if (robotDialogContext === "target" && robotHelpDecision === "not_asked") {
-                robotHelpDecision = "target_reward_prompt_seen";
-            }
             document.getElementById("robotDialogLayer").style.display = "none";
             roundTargetDialogPending = false;
             robotDialogContext = null;
@@ -2846,9 +2798,7 @@
                 surveyStartedAt = null;
             }
 
-            const conditionId = experimentCondition ? experimentCondition.id : "unassigned";
-            const avatarTheme = experimentCondition ? experimentCondition.avatarTheme : avatarThemeIndex;
-            const surveyPayload = `Round_${currentRound}|Mode:${surveyMode}|Condition:${conditionId}|AvatarTheme:${avatarTheme}|QuestionSource:${surveyQuestionSource}|HelpDecision:${robotHelpDecision}|` + answers.join("|");
+            const surveyPayload = `Round_${currentRound}|Mode:${surveyMode}|QuestionSource:${surveyQuestionSource}|GetTen:${getTen}|PromoteHelp:${promoteHelp}|` + answers.join("|");
             console.log(`問卷數據串:`, surveyPayload);
             uploadSurveyData(surveyPayload);
 
@@ -2890,12 +2840,13 @@
                 let qText = document.createElement("div"); qText.className = "question-text";
                 qText.innerText = `Q${questionNumber}. ${question}`;
                 qBlock.appendChild(qText);
-                let optGroup = document.createElement("div"); optGroup.className = "options-group";
-                for (let j = 1; j <= 7; j++) {
-                    let label = document.createElement("label"); label.className = "option-item";
-                    let radio = document.createElement("input"); radio.type = "radio"; radio.name = `question_${questionNumber}`; radio.value = j; radio.required = true;
-                    const anchor = j === 1 ? "非常不同意" : (j === 7 ? "非常同意" : "分");
-                    label.appendChild(radio); label.appendChild(document.createTextNode(`${j} ${anchor}`));
+                const optGroup = document.createElement("div"); optGroup.className = "options-group";
+                for (let score = 1; score <= 7; score++) {
+                    const label = document.createElement("label"); label.className = "option-item";
+                    const radio = document.createElement("input");
+                    radio.type = "radio"; radio.name = `question_${questionNumber}`; radio.value = score; radio.required = true;
+                    const text = score === 1 ? "1\n非常不同意" : (score === 7 ? "7\n非常同意" : `${score} 分`);
+                    label.append(radio, document.createTextNode(text));
                     optGroup.appendChild(label);
                 }
                 qBlock.appendChild(optGroup); container.appendChild(qBlock);
