@@ -94,6 +94,7 @@
         .input-group input {
             padding: 6px 10px; font-size: 15px; border-radius: 6px; border: none; width: 200px; text-align: center;
         }
+        #consentValidationMessage { min-height: 20px; margin: 8px 0 0; color: #ffd28a; text-align: center; }
         #waitingLayer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #7f8c8d; display: none; flex-direction: column;
@@ -132,6 +133,8 @@
         .option-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 6px; font-size: 12px; text-align: center; white-space: pre-line; cursor: pointer; color: #ecf0f1; background: rgba(255, 255, 255, 0.08); }
         .option-item:hover { background: rgba(248, 196, 113, 0.18); }
         .option-item input { cursor: pointer; }
+        .survey-text-answer { width: 100%; min-height: 92px; box-sizing: border-box; resize: vertical; border-radius: 6px; border: 1px solid #718096; padding: 10px; font: inherit; line-height: 1.5; color: #1f2937; }
+        .survey-validation { display: none; margin: 18px auto 0; max-width: 760px; color: #ffe08a; font-size: 16px; text-align: center; }
 
         #thanksLayer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -139,6 +142,14 @@
             align-items: center; justify-content: center; z-index: 400; text-align: center;
             padding: 40px; box-sizing: border-box;
         }
+        #exitFullscreenConfirmLayer {
+            position: absolute; inset: 0; display: none; z-index: 500;
+            background: rgba(10, 16, 24, 0.94); align-items: center; justify-content: center;
+        }
+        .exit-fullscreen-box { max-width: 470px; width: 82%; padding: 30px 36px; background: #34495e; border: 2px solid #f8c471; border-radius: 8px; color: #fff; text-align: center; }
+        .exit-fullscreen-box input { width: 100%; box-sizing: border-box; margin: 12px 0; padding: 10px; border: 0; border-radius: 5px; font-size: 16px; text-align: center; }
+        .exit-fullscreen-actions { display: flex; justify-content: center; gap: 12px; margin-top: 14px; }
+        #exitFullscreenError { min-height: 20px; color: #ffe08a; margin: 4px 0 0; }
 
         #robotDialogLayer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -301,6 +312,7 @@
                     <label for="participantId">請輸入您的參與者編號 (Participant ID):</label>
                     <input type="text" id="participantId" placeholder="例如: 1234" inputmode="numeric" maxlength="4" pattern="[1-4][0-9]{3}" autocomplete="off">
                 </div>
+                <p id="consentValidationMessage" role="alert"></p>
                 <button class="btn" id="agreeConsentBtn">同意參與實驗</button>
             </div>
         </div>
@@ -359,8 +371,6 @@
                     <div class="stats-item"><span>橘隊得分:</span><span id="resRightScore" class="stats-val">0</span></div>
                 </div>
                 
-                <button class="btn" id="nextRoundBtn" style="width: 100%; display: none;">確認，進入下一回合</button>
-                <button class="btn" id="goToSurveyBtn" style="width: 100%; display: none; background-color: #3498db;">確認，進入問卷階段</button>
             </div>
         </div>
 
@@ -368,6 +378,7 @@
             <div id="surveyLayerTitle" class="survey-title">後置實驗問卷調查</div>
             <form id="surveyForm">
                 <div id="questionContainer"></div>
+                <p id="surveyValidationMessage" class="survey-validation" role="alert"></p>
                 <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
                     <button type="button" class="btn" id="submitSurveyBtn" style="background-color: #e67e22; padding: 12px 40px; font-size: 18px;">提交問卷</button>
                 </div>
@@ -375,11 +386,24 @@
         </div>
 
         <div id="thanksLayer">
-            <h1 style="color: #2ecc71; font-size: 42px; margin-bottom: 15px;">實驗已圓滿結束</h1>
+            <h1 style="color: #2ecc71; font-size: 42px; margin-bottom: 15px;">實驗已結束。</h1>
             <p style="font-size: 20px; color: #f8fafc; max-width: 680px; line-height: 1.7;">
-                感謝您的參與！請將此完成畫面截圖，回傳至實驗者提供的聯絡信箱，並等待實驗者後續聯繫。
+                辛苦了，非常謝謝您的參與！實驗人員將計算您的得分與對應的實驗金額，並透過 email 與您聯繫。若有任何疑問，歡迎 email 研究助理。
             </p>
-            <p style="font-size: 18px; color: #f8c471; margin-top: 10px;">請按 Esc 鍵離開全螢幕。</p>
+            <p style="font-size: 18px; color: #f8c471; margin-top: 10px;">請按 Esc 鍵離開全螢幕，之後可直接關閉此視窗。</p>
+        </div>
+
+        <div id="exitFullscreenConfirmLayer">
+            <div class="exit-fullscreen-box">
+                <h2 style="color: #f8c471; margin-top: 0;">確認結束全螢幕？</h2>
+                <p>若要結束遊戲全螢幕，請輸入密碼：</p>
+                <input id="exitFullscreenPassword" type="password" autocomplete="off" aria-label="結束全螢幕密碼">
+                <p id="exitFullscreenError"></p>
+                <div class="exit-fullscreen-actions">
+                    <button type="button" class="btn" id="confirmExitFullscreenBtn">是，輸入密碼後結束</button>
+                    <button type="button" class="btn" id="cancelExitFullscreenBtn" style="background-color: #7f8c8d;">否，繼續遊戲</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -408,36 +432,38 @@
             3: { id: "round_3", opponent: 10, participant: 42 }
         };
         const WHEEL_VALUES = [10, 12, 14, 18, 22, 24, 28, 32, 36, 38, 42, 46];
-        const ROBOT_EVALUATION_QUESTIONS = [
-            "機器人助手在本回合中讓我覺得可靠。",
-            "機器人助手的協助符合任務需求。",
-            "機器人助手在適當時機提供提示。",
-            "我覺得機器人助手是一位合作夥伴。",
-            "我願意在後續任務中繼續與機器人助手合作。"
+        const LIKERT_AGREE = { minLabel: "1\n非常不同意", maxLabel: "5\n非常同意" };
+        const LIKERT_NOTICE = { minLabel: "1\n完全沒注意", maxLabel: "5\n完全有注意" };
+        const FINAL_SURVEY_QUESTIONS = [
+            { id: "flow_1", type: "likert", scale: LIKERT_AGREE, text: "整體實驗流程進行得很順暢，沒有明顯的中斷或卡頓。" },
+            { id: "flow_2", type: "likert", scale: LIKERT_AGREE, text: "實驗各個環節之間的銜接是自然的。" },
+            { id: "flow_3", type: "likert", scale: LIKERT_AGREE, text: "實驗過程中，我清楚知道自己目前進行到哪個階段。" },
+            { id: "flow_4", type: "likert", scale: LIKERT_AGREE, text: "實驗所需的時間長度是合理的。" },
+            { id: "flow_5_reverse", type: "likert", scale: LIKERT_AGREE, text: "我在操作介面或設備上遭遇了技術性困難。" },
+            { id: "flow_6", type: "text", text: "實驗流程中，是否有感到困惑或不順暢之處？如有，請描述。" },
+            { id: "flow_7", type: "text", text: "您認為本實驗的研究目的為何？" },
+            { id: "emotion_1", type: "likert", scale: LIKERT_AGREE, text: "與機器人互動時，我感受到它傳遞出明確的情緒。" },
+            { id: "emotion_2", type: "likert", scale: LIKERT_AGREE, dynamicText: true },
+            { id: "emotion_3", type: "likert", scale: LIKERT_AGREE, text: "機器人的回應方式讓我產生了相對應的情緒感受。" },
+            { id: "emotion_4", type: "text", text: "我認為機器人整體上呈現的是______情緒。" },
+            { id: "emotion_5_reverse", type: "likert", scale: LIKERT_AGREE, text: "與機器人合作過程中，我幾乎感受不到任何情緒氛圍。" },
+            { id: "instruction_1", type: "likert", scale: LIKERT_AGREE, text: "實驗開始前的指導語，讓我清楚了解這個實驗進行的方式。" },
+            { id: "instruction_2", type: "likert", scale: LIKERT_AGREE, text: "指導語說明了我在實驗中需要做什麼。" },
+            { id: "instruction_3", type: "likert", scale: LIKERT_AGREE, text: "閱讀完指導語後，我知道如何與機器人進行互動。" },
+            { id: "instruction_4", type: "likert", scale: LIKERT_AGREE, text: "指導語中使用的詞彙與說明方式是容易理解的。" },
+            { id: "instruction_5_reverse", type: "likert", scale: LIKERT_AGREE, text: "讀完指導語後，我仍有不清楚的地方。" },
+            { id: "instruction_6", type: "text", text: "指導語中是否有任何部分感到疑惑？如有，請說明。" },
+            { id: "robot_text_1", type: "likert", scale: LIKERT_AGREE, text: "機器人說話的內容與當下情境是吻合的。" },
+            { id: "robot_text_2", type: "likert", scale: LIKERT_AGREE, text: "機器人介入的時機點是自然的，不會讓我覺得突兀。" },
+            { id: "robot_text_3", type: "likert", scale: LIKERT_AGREE, text: "機器人所使用的語言風格（用詞、語氣等）是適合的。" },
+            { id: "robot_text_4_reverse", type: "likert", scale: LIKERT_AGREE, text: "機器人的回應內容讓我覺得難以置信或不真實。" },
+            { id: "robot_text_5", type: "likert", scale: LIKERT_AGREE, text: "整體而言，機器人的介入文本符合我對此類互動的預期。" },
+            { id: "robot_text_6", type: "text", text: "機器人說的內容中，是否有任何覺得不自然或不恰當之處？如有，請說明。" },
+            { id: "attention_1", type: "likert", scale: LIKERT_NOTICE, text: "在遊戲進行期間，您在多大程度上注意到兩組之間存在不平等的情況？" },
+            { id: "attention_2", type: "likert", scale: LIKERT_AGREE, text: "我擁有足夠的地瓜原料來完成任務。" },
+            { id: "attention_3", type: "likert", scale: LIKERT_AGREE, text: "聊天機器人的回應讓我感到其具有同理心。" }
         ];
-        const DEFAULT_SURVEY_QUESTIONS = [
-            "我能清楚理解本回合的目標與下一步操作。",
-            "機器人助手的行為讓我覺得可預測。",
-            "機器人助手提示或表情有幫助我理解目前狀態。",
-            "本回合的時間壓力是可以負荷的。",
-            "地瓜數量分配讓我覺得任務難度合理。",
-            "我覺得自己能順利控制角色完成任務。",
-            "我信任機器人助手會穩定完成它的工作。",
-            "我在本回合中感受到與機器人助手協作。",
-            "本回合的操作流程流暢自然。",
-            "我願意在下一回合繼續採用同樣的合作方式。"
-        ];
-        function mergeSurveyQuestionSets(baseQuestions, appendQuestions) {
-            const seen = new Set();
-            return [...baseQuestions, ...appendQuestions]
-                .map(question => String(question).trim())
-                .filter(question => {
-                    if (!question || seen.has(question)) return false;
-                    seen.add(question);
-                    return true;
-                });
-        }
-        let surveyQuestions = mergeSurveyQuestionSets(DEFAULT_SURVEY_QUESTIONS, ROBOT_EVALUATION_QUESTIONS);
+        let surveyQuestions = FINAL_SURVEY_QUESTIONS;
 
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
@@ -453,8 +479,10 @@
         const BOT_SPEED = 2.8;
         const WALK_PHASE_STEP = 0.22;
         const REACH_DISTANCE = 32;
-        const ROBOT_DIALOG_CHAR_DELAY_MS = 90;
+        const ROBOT_DIALOG_CHAR_DELAY_MS = 140;
         const ROBOT_DIALOG_BUTTON_DELAY_MS = 1000;
+        const ROUND_RESULT_COUNTDOWN_SECONDS = 15;
+        const EXIT_FULLSCREEN_PASSWORD = "prosocial2026";
         const ROBOT_TALKING_GIF_DURATION_MS = {
             more_direct_happy: 4450,
             more_direct_neutral: 4450,
@@ -471,6 +499,7 @@
         let gameTimer = null;
         let countdownTimer = null;
         let waitingTimer = null;
+        let roundResultTimer = null;
         let allocationTimer = null;
         let startTime = null;
         let roundEndHandled = false;
@@ -499,9 +528,9 @@
         let round2OpponentScoredOutAt = null;
         let round2ScarcityDialogShown = false;
         let donatedPotatoes = 0;
-        let surveyQuestionSource = "built_in";
         let lastParticipantActivityAt = Date.now();
         let idleReminderVisible = false;
+        let fullscreenExitConfirmationVisible = false;
 
         let playerData = {
             gameDuration: GAME_DURATION,
@@ -2155,7 +2184,7 @@
         }
 
         function drawServingZone(zone, label, accentColor) {
-            fillRoundedRect(zone.x - 8, zone.y - 8, zone.width + 16, zone.height + 18, 10, "#8d5b3d");
+            fillRoundedRect(zone.x - 4, zone.y - 4, zone.width + 8, zone.height + 10, 6, "#8d5b3d");
             fillRoundedRect(zone.x, zone.y, zone.width, zone.height, 8, "#f9f0d7");
             strokeRoundedRect(zone.x, zone.y, zone.width, zone.height, 8, accentColor, 4);
 
@@ -2168,17 +2197,15 @@
             ctx.arc(zone.x + zone.width / 2, zone.y + zone.height / 2 + 3, 14, 0, Math.PI * 2);
             ctx.fill();
 
-            const labelWidth = zone === leftZone ? 128 : 102;
-            const labelX = zone === leftZone ? zone.x - labelWidth - 10 : zone.x + zone.width + 10;
-            fillRoundedRect(labelX, zone.y + 25, labelWidth, 26, 6, "#ffffff");
-            ctx.fillStyle = "#6d4329";
-            ctx.font = "bold 12px sans-serif";
+            ctx.fillStyle = accentColor;
+            ctx.font = "bold 13px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText(label, labelX + labelWidth / 2, zone.y + 42);
+            ctx.textBaseline = "bottom";
+            ctx.fillText(label, zone.x + zone.width / 2, zone.y - 2);
         }
 
         function drawKitchenOven(o) {
-            const bodyColor = o.side === "left" ? "#75b9ae" : "#e7a45f";
+            const bodyColor = o.side === "left" ? "#1E93D5" : "#e7a45f";
             fillRoundedRect(o.x - 6, o.y - 10, o.width + 12, o.height + 18, 8, "#5d4031");
             fillRoundedRect(o.x, o.y - 4, o.width, o.height + 8, 7, bodyColor);
             fillRoundedRect(o.x + 9, o.y + 10, o.width - 18, o.height - 8, 5, "#fff3d7");
@@ -2196,7 +2223,15 @@
             ctx.fillText(`烤箱 ${o.slots.length}/${OVEN_CAPACITY}`, o.x + o.width / 2, o.y - 15);
         }
 
-        function drawBottomRobot() {
+        function getBottomRobotStatus() {
+            const dialogVisible = getComputedStyle(document.getElementById("robotDialogLayer")).display !== "none";
+            if (dialogVisible) return "講話中";
+            const ovenIsFull = ovens.filter(o => o.side === "right").every(o => o.slots.length >= OVEN_CAPACITY);
+            if (blackCatBot && blackCatBot.state === "GO_TO_OVEN" && ovenIsFull) return "等待烤箱空位";
+            return "配送原料";
+        }
+
+        function drawBottomRobot(timestamp = 0) {
             ctx.save();
             const panelW = 180;
             const panelH = 146;
@@ -2206,7 +2241,7 @@
             strokeRoundedRect(panelX, panelY, panelW, panelH, 10, "#8f5d3b", 2.2);
 
             const cx = panelX + panelW / 2;
-            const imageSize = 108;
+            const imageSize = 118;
             const imageY = panelY + 7;
             if (centerRobotImg.complete && centerRobotImg.naturalWidth !== 0) {
                 drawCoverImage(centerRobotImg, cx - imageSize / 2, imageY, imageSize, imageSize);
@@ -2218,11 +2253,20 @@
                 ctx.fillText("機器人助手", cx, imageY + imageSize / 2);
             }
 
+            const status = getBottomRobotStatus();
+            const statusY = panelY + 137;
             ctx.fillStyle = "#5b3a28";
-            ctx.textAlign = "center";
+            ctx.textAlign = "left";
             ctx.textBaseline = "alphabetic";
-            ctx.font = "bold 15px sans-serif";
-            ctx.fillText("原料配送中", cx, panelY + 132);
+            ctx.font = "bold 13px sans-serif";
+            const labelWidth = ctx.measureText(status).width;
+            const dotWidth = ctx.measureText(".").width;
+            const startX = cx - (labelWidth + dotWidth * 3) / 2;
+            ctx.fillText(status, startX, statusY);
+            for (let index = 0; index < 3; index++) {
+                const offsetY = Math.sin(timestamp / 150 - index * 0.8) * 2.5;
+                ctx.fillText(".", startX + labelWidth + dotWidth * index, statusY + offsetY);
+            }
             ctx.restore();
         }
 
@@ -2338,7 +2382,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // 1. 頂部資訊區
-            ctx.fillStyle = "#7fb7a9"; ctx.fillRect(0, 0, canvas.width, topSectionHeight);
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, topSectionHeight);
             ctx.fillStyle = "#fff1c7"; ctx.fillRect(0, 0, canvas.width, 10);
             ctx.fillStyle = "#5b3a28";
             ctx.font = "bold 18px sans-serif";
@@ -2355,7 +2399,7 @@
             ctx.fillStyle = (progressRatio > 0.5) ? "#2ecc71" : (progressRatio > 0.2 ? "#e67e22" : "#e74c3c");
             roundedRectPath(barX, barY, currentBarWidth, barHeight, 6);
             ctx.fill();
-            ctx.fillStyle = "#fff9ea";
+            ctx.fillStyle = "#9b6038";
             ctx.font = "bold 12px sans-serif";
             ctx.textAlign = "right";
             ctx.fillText(isPracticeDisplayStage() ? "練習" : `回合 ${currentRound}/${MAX_ROUNDS}`, barX - 16, 57);
@@ -2366,9 +2410,9 @@
             drawKitchenFloor();
             drawRobotWorkBarrier();
             drawRawAreaWall();
-            drawServingZone(leftZone, "藍隊得分區", "#55b7a4");
+            drawServingZone(leftZone, "藍隊得分區", "#1789C7");
             drawServingZone(rightZone, "橘隊得分區", "#ef9b51");
-            drawRawBasket(rawBaskets.left, "藍隊原料籃", getLeftRawCount(), "#3f8f82");
+            drawRawBasket(rawBaskets.left, "藍隊原料籃", getLeftRawCount(), "#1789C7");
             drawRawBasket(rawBaskets.right, "橘隊原料籃", getRightRawCount(), "#d97a34");
 
             ovens.forEach(o => {
@@ -2400,7 +2444,7 @@
                 ctx.fillText(countdownSec, midX, topSectionHeight + (gameSectionHeight/2) + 20);
             }
             drawAllocationAnimation(timestamp);
-            if (currentStage !== 'ALLOCATION') drawBottomRobot();
+            if (currentStage !== 'ALLOCATION') drawBottomRobot(timestamp);
         }
 
         function updateRoundClock() {
@@ -2508,32 +2552,53 @@
             document.getElementById("resLeftScore").innerText = playerData.leftScore;
             document.getElementById("resRightScore").innerText = playerData.rightScore;
             
-            const nextBtn = document.getElementById("nextRoundBtn");
-            const surveyBtn = document.getElementById("goToSurveyBtn");
-            nextBtn.style.display = "none"; surveyBtn.style.display = "none";
-            
             if (currentRound >= MAX_ROUNDS) {
                 document.getElementById("modalTitle").innerText = roundEndReason === "target" ? "第三回合達標完成" : "三回合完成";
-                document.getElementById("modalSub").innerText = "核心實驗階段已結束，請點擊下方按鈕完成最後問卷。";
-                surveyBtn.style.display = "block";
+                document.getElementById("modalSub").innerText = "正在整理本回合成績…";
             } else {
                 document.getElementById("modalTitle").innerText = roundEndReason === "target" ? "本回合達標" : "本回合結束";
-                document.getElementById("modalSub").innerText = roundEndReason === "target"
-                    ? "已完成本回合目標，請填寫本回合問卷後進入下一回合。"
-                    : "本輪數據已打包，請填寫本回合問卷後進入下一回合。";
-                surveyBtn.style.display = "block";
+                document.getElementById("modalSub").innerText = "正在整理本回合成績…";
             }
             document.getElementById("gameOverOverlay").style.display = "flex";
-            
             sendActionPayloadToGoogleForm(`ROUND_END_SUMMARY_ROUND_${currentRound}`);
+            startRoundResultCountdown();
+        }
+
+        function startRoundResultCountdown() {
+            clearInterval(roundResultTimer);
+            let secondsLeft = ROUND_RESULT_COUNTDOWN_SECONDS;
+            const modalSub = document.getElementById("modalSub");
+            const updateCountdownText = () => {
+                modalSub.innerText = currentRound >= MAX_ROUNDS
+                    ? `${secondsLeft} 秒後進入最終問卷。`
+                    : `${secondsLeft} 秒後進入下一回合。`;
+            };
+            updateCountdownText();
+            roundResultTimer = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft <= 0) {
+                    clearInterval(roundResultTimer);
+                    roundResultTimer = null;
+                    document.getElementById("gameOverOverlay").style.display = "none";
+                    if (currentRound >= MAX_ROUNDS) {
+                        goToSurveyPhase();
+                    } else {
+                        currentRound++;
+                        showWaitingThenStartRound(2, "系統整合玩家資訊中...");
+                    }
+                    return;
+                }
+                updateCountdownText();
+            }, 1000);
         }
 
         document.getElementById("agreeConsentBtn").addEventListener("click", () => {
             let inputId = document.getElementById("participantId").value.trim();
             if (!/^[1-4]\d{3}$/.test(inputId)) {
-                alert("請輸入四位數參與者編號，且第一位數須為 1、2、3 或 4。");
+                document.getElementById("consentValidationMessage").innerText = "請輸入四位數參與者編號，且第一位數須為 1、2、3 或 4。";
                 return;
             }
+            document.getElementById("consentValidationMessage").innerText = "";
             participantId = inputId;
             if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {});
@@ -2556,16 +2621,12 @@
 
         document.getElementById("confirmPracticeCompleteBtn").addEventListener("click", confirmPracticeComplete);
 
-        function goToSurveyPhase(mode = "postRound") {
-            surveyMode = mode;
+        function goToSurveyPhase() {
+            surveyMode = "final";
             currentStage = 'SURVEY';
-            const title = mode === "preRound"
-                ? `第 ${currentRound} / ${MAX_ROUNDS} 回合開始前問卷`
-                : `第 ${currentRound} / ${MAX_ROUNDS} 回合結束後問卷`;
-            document.getElementById("surveyLayerTitle").innerText = title;
-            document.getElementById("submitSurveyBtn").innerText = mode === "postRound" && currentRound >= MAX_ROUNDS
-                ? "提交最後問卷並結束"
-                : "提交問卷，進入下一階段";
+            document.getElementById("surveyLayerTitle").innerText = "最終問卷";
+            document.getElementById("submitSurveyBtn").innerText = "提交問卷並結束";
+            document.getElementById("surveyValidationMessage").style.display = "none";
             buildPsychologySurvey();
             surveyStartedAt = Date.now();
             const surveyLayer = document.getElementById("surveyLayer");
@@ -2575,14 +2636,18 @@
 
         function collectSurveyAnswers() {
             let answers = [];
-            for (let i = 1; i <= surveyQuestions.length; i++) {
-                const radios = document.getElementsByName(`question_${i}`);
-                let checkedValue = null;
-                for (const radio of radios) {
-                    if (radio.checked) { checkedValue = radio.value; break; }
+            for (const question of surveyQuestions) {
+                let value = null;
+                if (question.type === "text") {
+                    value = document.getElementById(`question_${question.id}`).value.trim();
+                } else {
+                    const radios = document.getElementsByName(`question_${question.id}`);
+                    for (const radio of radios) {
+                        if (radio.checked) { value = radio.value; break; }
+                    }
                 }
-                if (checkedValue === null) return null;
-                answers.push(`Q${i}:${checkedValue}`);
+                if (!value) return null;
+                answers.push(`${question.id}:${encodeURIComponent(value)}`);
             }
             return answers;
         }
@@ -2601,6 +2666,8 @@
         }
 
         function finishExperiment() {
+            clearInterval(roundResultTimer);
+            roundResultTimer = null;
             currentStage = 'THANKS';
             document.getElementById("surveyLayer").style.display = "none";
             document.getElementById("gameOverOverlay").style.display = "none";
@@ -2618,7 +2685,7 @@
             return ["第一回合開始", "第二回合開始", "第三回合開始"][round - 1] || `第 ${round} 回合開始`;
         }
 
-        function showWaitingThenStartRound(forcedWaitSeconds = null) {
+        function showWaitingThenStartRound(forcedWaitSeconds = null, forcedMessage = null) {
             const waitLayer = document.getElementById("waitingLayer");
             const waitText = document.getElementById("waitingLayerText");
             waitLayer.style.display = "flex";
@@ -2628,24 +2695,18 @@
                 ? getPreGameWaitSeconds(lastSurveyResponseSeconds)
                 : forcedWaitSeconds;
 
-            const showProcessingThenStart = () => {
-                waitText.innerText = "系統處理中，請稍候";
+            waitText.innerText = forcedMessage || (waitSeconds > 0
+                ? "其他玩家正在填寫問卷，請稍候"
+                : "系統整合玩家資訊中...");
+            const continueToRoundStart = () => {
+                waitText.innerText = getRoundStartLabel(currentRound);
                 waitingTimer = setTimeout(() => {
-                    waitText.innerText = getRoundStartLabel(currentRound);
-                    waitingTimer = setTimeout(() => {
-                        waitingTimer = null;
-                        waitLayer.style.display = "none";
-                        startAllocationAnimation();
-                    }, 1200);
-                }, 1000);
+                    waitingTimer = null;
+                    waitLayer.style.display = "none";
+                    startAllocationAnimation();
+                }, 1200);
             };
-
-            if (waitSeconds > 0) {
-                waitText.innerText = "其他玩家正在填寫問卷，請稍候";
-                waitingTimer = setTimeout(showProcessingThenStart, waitSeconds * 1000);
-            } else {
-                showProcessingThenStart();
-            }
+            waitingTimer = setTimeout(continueToRoundStart, Math.max(0, waitSeconds) * 1000);
         }
 
         function openRobotDialogSequence(messages, context, options = {}) {
@@ -2789,7 +2850,9 @@
         document.getElementById("submitSurveyBtn").addEventListener("click", () => {
             const answers = collectSurveyAnswers();
             if (!answers) {
-                alert("請填寫完全部題目後再提交。");
+                const validation = document.getElementById("surveyValidationMessage");
+                validation.innerText = "請填寫完全部題目後再提交。";
+                validation.style.display = "block";
                 return;
             }
 
@@ -2798,27 +2861,12 @@
                 surveyStartedAt = null;
             }
 
-            const surveyPayload = `Round_${currentRound}|Mode:${surveyMode}|QuestionSource:${surveyQuestionSource}|GetTen:${getTen}|PromoteHelp:${promoteHelp}|` + answers.join("|");
+            const surveyPayload = `Round_${currentRound}|Mode:${surveyMode}|QuestionSource:study6_pilot|GetTen:${getTen}|PromoteHelp:${promoteHelp}|` + answers.join("|");
             console.log(`問卷數據串:`, surveyPayload);
             uploadSurveyData(surveyPayload);
 
             document.getElementById("surveyLayer").style.display = "none";
-            if (surveyMode === "postRound" && currentRound >= MAX_ROUNDS) {
-                finishExperiment();
-                return;
-            }
-            if (surveyMode === "postRound") currentRound++;
-            showWaitingThenStartRound();
-        });
-
-        document.getElementById("nextRoundBtn").addEventListener("click", () => {
-            document.getElementById("gameOverOverlay").style.display = "none";
-            goToSurveyPhase("postRound");
-        });
-
-        document.getElementById("goToSurveyBtn").addEventListener("click", () => {
-            document.getElementById("gameOverOverlay").style.display = "none";
-            goToSurveyPhase("postRound");
+            finishExperiment();
         });
 
         document.getElementById("helpOtherTeamBtn").addEventListener("click", () => {
@@ -2838,20 +2886,76 @@
                 const questionNumber = index + 1;
                 let qBlock = document.createElement("div"); qBlock.className = "question-block";
                 let qText = document.createElement("div"); qText.className = "question-text";
-                qText.innerText = `Q${questionNumber}. ${question}`;
+                const questionText = question.dynamicText
+                    ? `機器人所表現出的情緒，讓我覺得是「${experimentCondition?.robot.id.includes("happy") ? "正向的" : "中性的"}」。`
+                    : question.text;
+                qText.innerText = `Q${questionNumber}. ${questionText}`;
                 qBlock.appendChild(qText);
-                const optGroup = document.createElement("div"); optGroup.className = "options-group";
-                for (let score = 1; score <= 7; score++) {
-                    const label = document.createElement("label"); label.className = "option-item";
-                    const radio = document.createElement("input");
-                    radio.type = "radio"; radio.name = `question_${questionNumber}`; radio.value = score; radio.required = true;
-                    const text = score === 1 ? "1\n非常不同意" : (score === 7 ? "7\n非常同意" : `${score} 分`);
-                    label.append(radio, document.createTextNode(text));
-                    optGroup.appendChild(label);
+                if (question.type === "text") {
+                    const input = document.createElement("textarea");
+                    input.id = `question_${question.id}`;
+                    input.className = "survey-text-answer";
+                    input.required = true;
+                    input.setAttribute("aria-label", `第 ${questionNumber} 題填答`);
+                    qBlock.appendChild(input);
+                } else {
+                    const optGroup = document.createElement("div"); optGroup.className = "options-group";
+                    for (let score = 1; score <= 5; score++) {
+                        const label = document.createElement("label"); label.className = "option-item";
+                        const radio = document.createElement("input");
+                        radio.type = "radio"; radio.name = `question_${question.id}`; radio.value = score; radio.required = true;
+                        const text = score === 1 ? question.scale.minLabel : (score === 5 ? question.scale.maxLabel : `${score} 分`);
+                        label.append(radio, document.createTextNode(text));
+                        optGroup.appendChild(label);
+                    }
+                    qBlock.appendChild(optGroup);
                 }
-                qBlock.appendChild(optGroup); container.appendChild(qBlock);
+                container.appendChild(qBlock);
             });
         }
+
+        function showFullscreenExitConfirmation() {
+            if (currentStage === 'THANKS' || fullscreenExitConfirmationVisible) return;
+            fullscreenExitConfirmationVisible = true;
+            const layer = document.getElementById("exitFullscreenConfirmLayer");
+            document.getElementById("exitFullscreenPassword").value = "";
+            document.getElementById("exitFullscreenError").innerText = "";
+            layer.style.display = "flex";
+            document.getElementById("exitFullscreenPassword").focus();
+        }
+
+        function resumeFullscreenGame() {
+            const layer = document.getElementById("exitFullscreenConfirmLayer");
+            const error = document.getElementById("exitFullscreenError");
+            document.documentElement.requestFullscreen().then(() => {
+                layer.style.display = "none";
+                fullscreenExitConfirmationVisible = false;
+            }).catch(() => {
+                error.innerText = "無法返回全螢幕，請使用按鈕再試一次。";
+            });
+        }
+
+        document.getElementById("cancelExitFullscreenBtn").addEventListener("click", resumeFullscreenGame);
+        document.getElementById("confirmExitFullscreenBtn").addEventListener("click", () => {
+            const password = document.getElementById("exitFullscreenPassword").value;
+            const error = document.getElementById("exitFullscreenError");
+            if (password !== EXIT_FULLSCREEN_PASSWORD) {
+                error.innerText = "密碼不正確，請重新輸入。";
+                return;
+            }
+            document.getElementById("exitFullscreenConfirmLayer").style.display = "none";
+            fullscreenExitConfirmationVisible = false;
+            clearInterval(gameTimer);
+            clearInterval(roundResultTimer);
+            clearTimeout(waitingTimer);
+            clearTimeout(allocationTimer);
+            clearInterval(countdownTimer);
+            currentStage = 'EXITED';
+        });
+
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement) showFullscreenExitConfirmation();
+        });
 
         window.addEventListener("keydown", e => {
             if (e.code in keys) {
