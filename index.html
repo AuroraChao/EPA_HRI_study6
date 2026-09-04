@@ -167,28 +167,9 @@
         .gal-character canvas {
             width: 100%; height: 100%; object-fit: cover; display: block;
         }
-        .gal-dialog-box {
-            position: absolute; left: 46px; right: 46px; bottom: 34px;
-            min-height: 156px; box-sizing: border-box;
-            padding: 28px 34px 24px;
-            background: rgba(16, 24, 39, 0.94);
-            border: 2px solid rgba(248, 196, 113, 0.86);
-            border-radius: 8px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.46);
-        }
-        .gal-nameplate {
-            position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
-            padding: 8px 20px; background: #f8c471; color: #18202b;
-            border-radius: 6px 6px 0 0; font-weight: bold; letter-spacing: 0;
-        }
-        #robotDialogText {
-            color: #ffffff; font-size: 19px; line-height: 1.75; min-height: 62px;
-            text-align: left; max-width: 860px; margin: 0 auto;
-            white-space: pre-line;
-        }
-        .gal-choices {
+        .robot-speech-controls {
+            position: absolute; left: 0; right: 0; bottom: 110px;
             display: flex; justify-content: center; align-items: center;
-            gap: 12px; margin-top: 18px; min-height: 42px;
         }
         .gal-choice {
             border: 1px solid rgba(255, 255, 255, 0.22);
@@ -287,7 +268,7 @@
                 <div id="practiceStepBadge">練習目標 0 / 5</div>
                 <div id="practiceStepText">這是試玩階段。請等待機器人助手將原料放入烤箱；地瓜烤好後會留在烤箱內，請靠近烤箱按 Space 拿起，再送到上方橘色得分區。</div>
             </div>
-            <button class="btn" id="endPracticeBtn" style="background-color: #e67e22;" disabled>完成練習，進入第一回合</button>
+            <button class="btn" id="endPracticeBtn" style="background-color: #e67e22;" disabled>完成練習，開始正式遊戲</button>
         </div>
 
         <div id="idleReminderLayer">
@@ -322,7 +303,7 @@
                 <h2 style="font-size: 26px; color: #f1c40f; margin-top: 0;">協作實驗：地瓜烘烤任務</h2>
                 <div class="intro-instructions">
                     <p>謝謝您參與實驗！這是一個分組烤地瓜的遊戲，遊戲的目標是要送出烤好的地瓜，愈多愈好。</p>
-                    <p>一組至少要送出 10 顆烤地瓜，才能獲得最低實驗報酬；每多送一顆，獎勵就多一單位。遊戲總共三回合，最終實驗報酬將會是三回合得分的平均，但只要有一回合沒有達 10 顆最低標準，便無法獲得任何實驗報酬。</p>
+                    <p>一組至少要送出 10 顆烤地瓜，才能獲得最低實驗報酬；每多送一顆，獎勵就多一單位。最終實驗報酬將會以各回合得分的平均計算，但只要有一回合沒有達 10 顆最低標準，便無法獲得任何實驗報酬。</p>
                     <p>送出的烤地瓜必須是熟的，您需要和隊友一起把生地瓜從籃子裡拿到烤箱，再烤箱烤 5 秒，地瓜就會熟。</p>
                     <div class="intro-role-panel">
                         <div class="intro-role-card">
@@ -351,14 +332,10 @@
             <div class="gal-character">
                 <img id="robotDialogPortrait" src="robot_more_direct_happy.gif" alt="橘隊機器人">
             </div>
-            <div class="gal-dialog-box">
-                <div class="gal-nameplate" id="robotDialogName">機器人助手</div>
-                <div id="robotDialogText"></div>
-                <div class="gal-choices">
-                    <button type="button" class="gal-choice primary" id="helpOtherTeamBtn">OK</button>
-                    <button type="button" class="gal-choice" id="focusOwnTeamBtn" style="display: none;">取消</button>
-                </div>
+            <div class="robot-speech-controls">
+                <button type="button" class="gal-choice primary" id="helpOtherTeamBtn">OK</button>
             </div>
+            <audio id="robotSpeechAudio" preload="auto"></audio>
         </div>
 
         <div id="gameOverOverlay">
@@ -366,7 +343,6 @@
                 <h2 id="modalTitle">本回合結束</h2>
                 <p id="modalSub">正在打包並上傳您的行為數據...</p>
                 <div class="stats-container">
-                    <div class="stats-item"><span>結束回合 (Finished Round):</span><span id="resRound" class="stats-val">1 / 3</span></div>
                     <div class="stats-item"><span>藍隊得分:</span><span id="resLeftScore" class="stats-val">0</span></div>
                     <div class="stats-item"><span>橘隊得分:</span><span id="resRightScore" class="stats-val">0</span></div>
                 </div>
@@ -426,6 +402,12 @@
             { id: "more_direct_neutral", label: "較多直視 / 中性", image: "robot_more_direct_neutral.gif", noTalkImage: "robot_more_direct_neutral_notalk.gif" },
             { id: "less_direct_neutral", label: "較少直視 / 中性", image: "robot_less_direct_neutral.gif", noTalkImage: "robot_less_direct_neutral_notalk.gif" }
         ];
+        const ROBOT_SPEECH_FILES = Object.fromEntries(
+            Array.from({ length: 9 }, (_, index) => {
+                const speechId = `say${String(index + 1).padStart(2, "0")}`;
+                return [speechId, `robot_speech/${speechId}.m4a`];
+            })
+        );
         const ROUND_DISTRIBUTIONS = {
             1: { id: "round_1", opponent: 12, participant: 46 },
             2: { id: "round_2", opponent: 10, participant: 38 },
@@ -525,6 +507,7 @@
         let robotDialogButtonDelayMs = ROBOT_DIALOG_BUTTON_DELAY_MS;
         let robotDialogLogEnabled = true;
         let robotDialogOnComplete = null;
+        let robotSpeechAudio = null;
         let round2OpponentScoredOutAt = null;
         let round2ScarcityDialogShown = false;
         let donatedPotatoes = 0;
@@ -1695,6 +1678,7 @@
             roundEndReason = "timeout";
             clearInterval(robotDialogTypeTimer);
             clearTimeout(robotDialogButtonTimer);
+            stopRobotSpeechAudio();
             robotDialogContext = null;
             robotDialogMessages = [];
             robotDialogMessageIndex = 0;
@@ -1904,12 +1888,7 @@
         }
 
         function getPracticeTutorialMessages() {
-            return [
-                "嗨！我是你的隊友，我們是橘隊的。",
-                "我會操作右下角那個小機器人，而你操作的是上面那個橘色的角色。",
-                "我提議這樣分工，我負責把生地瓜送到烤箱；等地瓜烤好，換你把地瓜送到得分區。",
-                "你可以透過鍵盤上的上下左右按鍵來移動，要拿取和放下地瓜就按空白鍵。我先送地瓜到烤箱，你也試試看將烤好的地瓜送到得分區吧！"
-            ];
+            return ["say01", "say02", "say03"];
         }
 
         function startPracticeRoundAfterTutorial() {
@@ -1931,23 +1910,17 @@
         function showPracticeOwnScoreDialog() {
             if (practiceOwnScorePromptShown) return;
             practiceOwnScorePromptShown = true;
-            openRobotDialogSequence([
-                "做得好！這樣我們就得一分了！接下來試著將地瓜送到藍色的得分區吧！"
-            ], "practice_own_score", { allowedStages: ["PRACTICE"], log: false });
+            openRobotDialogSequence(["say04"], "practice_own_score", { allowedStages: ["PRACTICE"], log: false });
         }
 
         function showPracticeOtherScoreDialog() {
             if (practiceOtherScorePromptShown) return;
             practiceOtherScorePromptShown = true;
-            openRobotDialogSequence([
-                "你看，如果把地瓜送到藍色得分區，就變成另一隊得分囉~ 接下來再試著多送幾顆地瓜吧！"
-            ], "practice_other_score", { allowedStages: ["PRACTICE"], log: false });
+            openRobotDialogSequence(["say05"], "practice_other_score", { allowedStages: ["PRACTICE"], log: false });
         }
 
         function showPracticeCompleteDialog() {
-            openRobotDialogSequence([
-                "太棒了，你完成練習了。接下來我們就等另一隊的人進來，一起做正式實驗吧！"
-            ], "practice_complete", {
+            openRobotDialogSequence(["say06", "say07"], "practice_complete", {
                 allowedStages: ["PRACTICE"],
                 log: false,
                 onComplete: completePracticeTarget
@@ -2368,7 +2341,7 @@
             ctx.fillStyle = "#fff9ea";
             ctx.textAlign = "center";
             ctx.font = "bold 28px sans-serif";
-            ctx.fillText(`第 ${currentRound} 回合地瓜分配轉盤`, midX, topSectionHeight + 52);
+            ctx.fillText("地瓜分配轉盤", midX, topSectionHeight + 52);
 
             drawQuantityWheel(midX - 230, topSectionHeight + 230, 105, opponentRotation,
                 allocationState.distribution.opponent, "另外一組", "#8fd3c4", phase);
@@ -2402,7 +2375,7 @@
             ctx.fillStyle = "#9b6038";
             ctx.font = "bold 12px sans-serif";
             ctx.textAlign = "right";
-            ctx.fillText(isPracticeDisplayStage() ? "練習" : `回合 ${currentRound}/${MAX_ROUNDS}`, barX - 16, 57);
+            ctx.fillText(isPracticeDisplayStage() ? "練習" : "正式遊戲", barX - 16, 57);
             ctx.textAlign = "left";
             ctx.fillText(isPracticeDisplayStage() ? "無時間限制" : `${timeLeft} 秒`, barX + barWidth + 16, 57);
 
@@ -2541,6 +2514,7 @@
             hideIdleReminder();
             clearInterval(robotDialogTypeTimer);
             clearTimeout(robotDialogButtonTimer);
+            stopRobotSpeechAudio();
             document.getElementById("robotDialogLayer").style.display = "none";
             roundTargetDialogPending = false;
             robotDialogContext = null;
@@ -2548,12 +2522,11 @@
             robotDialogMessageIndex = 0;
             robotDialogCanAdvance = false;
             robotDialogOnComplete = null;
-            document.getElementById("resRound").innerText = `${currentRound} / ${MAX_ROUNDS}`;
             document.getElementById("resLeftScore").innerText = playerData.leftScore;
             document.getElementById("resRightScore").innerText = playerData.rightScore;
             
             if (currentRound >= MAX_ROUNDS) {
-                document.getElementById("modalTitle").innerText = roundEndReason === "target" ? "第三回合達標完成" : "三回合完成";
+                document.getElementById("modalTitle").innerText = roundEndReason === "target" ? "達標完成" : "遊戲完成";
                 document.getElementById("modalSub").innerText = "正在整理本回合成績…";
             } else {
                 document.getElementById("modalTitle").innerText = roundEndReason === "target" ? "本回合達標" : "本回合結束";
@@ -2681,8 +2654,8 @@
             return Math.min((150 - t) * randomFactor, 30);
         }
 
-        function getRoundStartLabel(round) {
-            return ["第一回合開始", "第二回合開始", "第三回合開始"][round - 1] || `第 ${round} 回合開始`;
+        function getRoundStartLabel() {
+            return "準備開始";
         }
 
         function showWaitingThenStartRound(forcedWaitSeconds = null, forcedMessage = null) {
@@ -2696,7 +2669,7 @@
                 : forcedWaitSeconds;
 
             waitText.innerText = forcedMessage || (waitSeconds > 0
-                ? "其他玩家正在填寫問卷，請稍候"
+                ? "正在等待其他玩家進入遊戲"
                 : "系統整合玩家資訊中...");
             const continueToRoundStart = () => {
                 waitText.innerText = getRoundStartLabel(currentRound);
@@ -2719,72 +2692,68 @@
             robotDialogMessageIndex = 0;
             robotDialogLogEnabled = options.log !== false;
             robotDialogOnComplete = typeof options.onComplete === "function" ? options.onComplete : null;
-            robotDialogButtonDelayMs = options.buttonDelayMs ?? ROBOT_DIALOG_BUTTON_DELAY_MS;
             const layer = document.getElementById("robotDialogLayer");
-            const portrait = document.getElementById("robotDialogPortrait");
-            const name = document.getElementById("robotDialogName");
             const primaryBtn = document.getElementById("helpOtherTeamBtn");
-            const secondaryBtn = document.getElementById("focusOwnTeamBtn");
-            const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
-            portrait.src = robot.image;
-            name.innerText = ORANGE_ROBOT_DISPLAY_NAME;
             layer.style.display = "block";
-            secondaryBtn.style.display = "none";
             primaryBtn.innerText = "OK";
             primaryBtn.dataset.action = "ok";
-            typeRobotDialogText(robotDialogMessages[0]);
+            playRobotSpeech(robotDialogMessages[0]);
             return true;
         }
 
         function showRoundTargetDialog() {
-            openRobotDialogSequence([
-                "太好了! 我們達到可以獲得報酬的標準了!",
-                "現在可以繼續遊戲，完成越多烤地瓜可以獲得越多參與獎勵，我們一起努力吧！"
-            ], "target");
+            openRobotDialogSequence(["say08"], "target");
         }
 
         function showRound2ScarcityDialog() {
-            const opened = openRobotDialogSequence([
-                "我偷偷觀察他們的進度，發現他們有一陣子沒有動作了。",
-                "是因為沒有地瓜了吧。那我們要分給他們一些地瓜嗎？",
-                "如果你想要分享，可以把烤好的地瓜拿到另外一組玩家的得分區或是放在他們面前"
-            ], "round2_scarcity");
+            const opened = openRobotDialogSequence(["say09"], "round2_scarcity");
             if (opened) round2ScarcityDialogShown = true;
         }
 
-        function typeRobotDialogText(message) {
-            const text = document.getElementById("robotDialogText");
+        function stopRobotSpeechAudio() {
+            if (!robotSpeechAudio) return;
+            robotSpeechAudio.pause();
+            robotSpeechAudio.onended = null;
+            robotSpeechAudio.onerror = null;
+        }
+
+        function finishRobotSpeech(speechId) {
             const primaryBtn = document.getElementById("helpOtherTeamBtn");
             const portrait = document.getElementById("robotDialogPortrait");
             const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
-            clearInterval(robotDialogTypeTimer);
-            clearTimeout(robotDialogButtonTimer);
+            if (robotDialogMessages[robotDialogMessageIndex] !== speechId) return;
+            robotDialogCanAdvance = false;
+            portrait.src = robot.noTalkImage;
+            primaryBtn.disabled = false;
+            primaryBtn.style.visibility = "visible";
+            robotDialogCanAdvance = true;
+        }
+
+        function playRobotSpeech(speechId) {
+            const primaryBtn = document.getElementById("helpOtherTeamBtn");
+            const portrait = document.getElementById("robotDialogPortrait");
+            const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
+            const speechFile = ROBOT_SPEECH_FILES[speechId];
+            stopRobotSpeechAudio();
             robotDialogCanAdvance = false;
             portrait.src = robot.image;
             primaryBtn.disabled = true;
-            primaryBtn.style.display = "inline-block";
             primaryBtn.style.visibility = "hidden";
-            text.innerText = "";
-            let cursor = 0;
-            robotDialogTypeTimer = setInterval(() => {
-                cursor++;
-                text.innerText = message.slice(0, cursor);
-                if (cursor >= message.length) clearInterval(robotDialogTypeTimer);
-            }, ROBOT_DIALOG_CHAR_DELAY_MS);
-            const fullTextDelay = message.length * ROBOT_DIALOG_CHAR_DELAY_MS;
-            const talkingGifDuration = ROBOT_TALKING_GIF_DURATION_MS[robot.id] || 0;
-            robotDialogButtonTimer = setTimeout(() => {
-                portrait.src = robot.noTalkImage;
-                robotDialogCanAdvance = true;
-                primaryBtn.disabled = false;
-                primaryBtn.style.visibility = "visible";
-            }, Math.max(fullTextDelay + robotDialogButtonDelayMs, talkingGifDuration));
+            if (!speechFile) {
+                finishRobotSpeech(speechId);
+                return;
+            }
+            robotSpeechAudio = document.getElementById("robotSpeechAudio");
+            robotSpeechAudio.src = speechFile;
+            robotSpeechAudio.currentTime = 0;
+            robotSpeechAudio.onended = () => finishRobotSpeech(speechId);
+            robotSpeechAudio.onerror = () => finishRobotSpeech(speechId);
+            robotSpeechAudio.play().catch(() => finishRobotSpeech(speechId));
         }
 
         function resolveSecondRoundHelpDialog(decision) {
             if (!robotDialogCanAdvance) return;
-            clearInterval(robotDialogTypeTimer);
-            clearTimeout(robotDialogButtonTimer);
+            stopRobotSpeechAudio();
             const isFinalDialogStep = robotDialogMessageIndex === robotDialogMessages.length - 1;
             if (isFinalDialogStep && robotDialogContext === "target") getTen = 1;
             if (isFinalDialogStep && robotDialogContext === "round2_scarcity") promoteHelp = 1;
@@ -2794,7 +2763,7 @@
 
             if (robotDialogMessageIndex < robotDialogMessages.length - 1) {
                 robotDialogMessageIndex++;
-                typeRobotDialogText(robotDialogMessages[robotDialogMessageIndex]);
+                playRobotSpeech(robotDialogMessages[robotDialogMessageIndex]);
                 return;
             }
 
@@ -2871,11 +2840,6 @@
 
         document.getElementById("helpOtherTeamBtn").addEventListener("click", () => {
             const action = document.getElementById("helpOtherTeamBtn").dataset.action || "continue";
-            resolveSecondRoundHelpDialog(action);
-        });
-
-        document.getElementById("focusOwnTeamBtn").addEventListener("click", () => {
-            const action = document.getElementById("focusOwnTeamBtn").dataset.action || "focus_own_team";
             resolveSecondRoundHelpDialog(action);
         });
 
