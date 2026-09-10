@@ -393,8 +393,6 @@
         const ENTRY_SURVEY_DATA = "entry.1500336990";    // 問卷回答數據
 
         const CONDITION_ASSIGNMENT_MODE = "participantHash"; // 可改為 "random"
-        const ORANGE_ROBOT_DISPLAY_NAME = "橘隊機器人";
-        const BLUE_ROBOT_DISPLAY_NAME = "藍隊機器人";
         const BLUE_PLAYER_DISPLAY_NAME = "5068";
         const ROBOT_CONDITIONS = [
             { id: "more_direct_happy", label: "較多直視 / 開心", image: "robot_more_direct_happy.gif", noTalkImage: "robot_more_direct_happy_notalk.gif" },
@@ -457,8 +455,9 @@
         const PRACTICE_RAW_COUNT = 18;
         const OVEN_CAPACITY = 4;
         const COOK_DURATION_MS = 5000;
-        const CAT_SPEED = 2.8;
+        const CAT_SPEED = 3.1;
         const BOT_SPEED = 2.8;
+        const LEFT_SCORE_BOT_SPEED = 3.1;
         const WALK_PHASE_STEP = 0.22;
         const REACH_DISTANCE = 32;
         const ROBOT_DIALOG_CHAR_DELAY_MS = 140;
@@ -475,6 +474,7 @@
         let currentStage = 'INTRO'; 
         let currentRound = 1;
         let participantId = "ANONYMOUS";
+        let participantTeamColor = "orange";
         
         let timeLeft = GAME_DURATION;
         let countdownSec = 5; 
@@ -493,6 +493,8 @@
         let practiceTargetCompleted = false;
         let practiceOwnScorePromptShown = false;
         let practiceOtherScorePromptShown = false;
+        let practiceOwnScoreDialogPending = false;
+        let practiceOtherScoreDialogPending = false;
         let roundTargetDialogPending = false;
         let roundTargetReached = false;
         let roundEndReason = "timeout";
@@ -594,10 +596,43 @@
         const orangeRobotIconImg = new Image();
         orangeRobotIconImg.src = "robot_icon_orange.svg";
 
+        const TEAM_THEMES = {
+            orange: {
+                name: "橘隊", scoreAccent: "#ef9b51", basketAccent: "#d97a34", ovenColor: "#e7a45f",
+                human: { shirt: "#f28c45", pants: "#416f9f", skin: "#ffd1a8", outline: "#7a543b", accent: "#ef9b51" },
+                robotAccent: "#e69545"
+            },
+            blue: {
+                name: "藍隊", scoreAccent: "#1789C7", basketAccent: "#1789C7", ovenColor: "#1E93D5",
+                human: { shirt: "#55b7a4", pants: "#7666b5", skin: "#ffd1a8", outline: "#7a543b", accent: "#55b7a4" },
+                robotAccent: "#1abc9c"
+            }
+        };
+
+        function getTeamTheme(side) {
+            const color = side === "right"
+                ? participantTeamColor
+                : (participantTeamColor === "orange" ? "blue" : "orange");
+            return TEAM_THEMES[color];
+        }
+
+        function configureColorCounterbalance() {
+            participantTeamColor = Number(participantId) % 2 === 0 ? "blue" : "orange";
+            const rightIsBlue = participantTeamColor === "blue";
+            participantWalkImg.src = rightIsBlue ? "green1_sprite.svg" : "orange1_sprite.svg";
+            participantHoldImg.src = rightIsBlue ? "green2_sprite.svg" : "orange2_sprite.svg";
+            otherWalkImg.src = rightIsBlue ? "orange1_sprite.svg" : "green1_sprite.svg";
+            otherHoldImg.src = rightIsBlue ? "orange2_sprite.svg" : "green2_sprite.svg";
+            orangeRobotIconImg.src = rightIsBlue ? "robot_icon_green.svg" : "robot_icon_orange.svg";
+            blueRobotIconImg.src = rightIsBlue ? "robot2_icon_orange.svg" : "robot2_icon_green.svg";
+            document.getElementById("introParticipantAvatar").src = participantWalkImg.src;
+            document.getElementById("practiceStepText").innerText = `這是試玩階段。請等待機器人助手將原料放入烤箱；地瓜烤好後會留在烤箱內，請靠近烤箱按 Space 拿起，再送到上方${getTeamTheme("right").name}得分區。`;
+            document.querySelector("#gameOverOverlay .stats-item:first-child span").innerText = `${getTeamTheme("left").name}得分:`;
+            document.querySelector("#gameOverOverlay .stats-item:nth-child(2) span").innerText = `${getTeamTheme("right").name}得分:`;
+        }
+
         function getHumanAppearance(role) {
-            return role === "participant"
-                ? { shirt: "#f28c45", pants: "#416f9f", skin: "#ffd1a8", outline: "#7a543b", accent: "#ef9b51" }
-                : { shirt: "#55b7a4", pants: "#7666b5", skin: "#ffd1a8", outline: "#7a543b", accent: "#55b7a4" };
+            return role === "participant" ? getTeamTheme("right").human : getTeamTheme("left").human;
         }
 
         function getRobotAccent(role) {
@@ -1226,21 +1261,22 @@
                 this.holdingBall = null; this.state = "SEARCH_YELLOW";
                 this.heading = 0; this.currentSpeed = 0; this.walkPhase = 0; this.moving = false;
                 this.facing = "left";
-                this.moveAxis = null; this.pauseFrames = 12 + Math.floor(Math.random() * 24);
-                this.randomPauseChance = 0.008;
-                this.randomPauseMin = 18;
-                this.randomPauseRange = 36;
                 this.idleTargetX = x;
                 this.idleTargetY = y;
                 this.idleFrames = 0;
                 this.idleWalking = false;
                 this.actionPauseUntil = 0;
                 this.pendingAction = null;
-
-                // 防卡死監控變數 (5秒不動檢測)
-                // this.lastRecordedX = x; this.lastRecordedY = y;
-                // this.immobileFrames = 0; this.antiStuckActive = false;
-                // this.antiStuckTargetX = x; this.antiStuckTargetY = y;
+                this.routeWaypoints = [];
+                this.routeIndex = 0;
+                this.routeKey = null;
+                this.routeType = null;
+                this.deliveryTarget = null;
+                this.deliveryShouldMiss = false;
+                this.missedBall = null;
+                this.missedBallRetreatTarget = null;
+                this.retryPickupNotBefore = 0;
+                this.pickupDelayUntil = 0;
             }
 
             update() {
@@ -1254,7 +1290,7 @@
                     const action = this.pendingAction;
                     this.pendingAction = null;
                     action();
-                    this.actionPauseUntil = Date.now() + 1000;
+                    this.actionPauseUntil = Date.now() + 200;
                     this.moving = false;
                     return;
                 }
@@ -1263,36 +1299,20 @@
                     return;
                 }
 
-                // --- 防卡死檢測 ---
-                // let distFromLastRecord = Math.hypot(this.x - this.lastRecordedX, this.y - this.lastRecordedY);
-                // if (distFromLastRecord < 0.5) { this.immobileFrames++; } else { this.immobileFrames = 0; }
-                // this.lastRecordedX = this.x; this.lastRecordedY = this.y;
-
-                // if (this.immobileFrames >= 300 && !this.antiStuckActive) {
-                //     this.antiStuckActive = true; this.immobileFrames = 0;
-                //     let randomAngle = Math.random() * Math.PI * 2;
-                //     this.antiStuckTargetX = this.x + Math.cos(randomAngle) * 110;
-                //     this.antiStuckTargetY = this.y + Math.sin(randomAngle) * 110;
-                // }
-
-                // if (this.antiStuckActive) {
-                //     let angle = Math.atan2(this.antiStuckTargetY - this.y, this.antiStuckTargetX - this.x);
-                //     this.x += Math.cos(angle) * BOT_SPEED; this.y += Math.sin(angle) * BOT_SPEED;
-                //     if (Math.hypot(this.x - this.antiStuckTargetX, this.y - this.antiStuckTargetY) < 15) { this.antiStuckActive = false; }
-                //     if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y; }
-                //     return;
-                // }
-
                 if (this.holdingBall) { this.holdingBall.x = this.x; this.holdingBall.y = this.y - 24; }
 
                 // --- 核心行為狀態機（比照 RightBlackCatBot 設計） ---
                 if (this.state === "SEARCH_YELLOW") {
                     if (this.holdingBall) { this.state = "GO_TO_ZONE"; return; }
+                    if (Date.now() < this.pickupDelayUntil) {
+                        this.moving = false;
+                        return;
+                    }
                     
                     // 尋找左半邊掉在地面上的黃色熟球
                     let targetYellow = balls.find(b => !b.isHeld && b.x < midX && b.status === "yellow");
                     if (targetYellow) {
-                        this.moveHumanLike(targetYellow.x, targetYellow.y);
+                        this.moveAlongHumanRoute(targetYellow.x, targetYellow.y, `pickup:${targetYellow.id}`, true);
                         if (Math.hypot(this.x - targetYellow.x, this.y - targetYellow.y) < REACH_DISTANCE) {
                             if (!targetYellow.isHeld) {
                                 this.pauseBeforeAndAfter(() => {
@@ -1303,21 +1323,27 @@
                                     targetYellow.outputOvenId = null;
                                     targetYellow.outputSlot = null;
                                     this.state = "GO_TO_ZONE";
+                                    this.deliveryShouldMiss = Math.random() < 0.2;
+                                    this.deliveryTarget = this.deliveryShouldMiss
+                                        ? this.getMissedDeliveryTarget()
+                                        : { x: leftZone.x + leftZone.width / 2, y: leftZone.y + leftZone.height / 2 };
+                                    this.clearHumanRoute();
                                 });
                             }
                         }
                     } else {
                         this.idleFrames--;
                         if (this.idleFrames <= 0) {
-                            this.idleWalking = Math.random() >= 0.35;
+                            this.idleWalking = Math.random() < 0.4;
                             this.idleFrames = this.idleWalking
-                                ? 90 + Math.floor(Math.random() * 150)
-                                : 45 + Math.floor(Math.random() * 90);
-                            this.idleTargetX = 70 + Math.random() * (midX - 140);
-                            this.idleTargetY = topSectionHeight + 70 + Math.random() * (robotWorkBarrier.y - topSectionHeight - 120);
+                                ? 35 + Math.floor(Math.random() * 46)
+                                : 90 + Math.floor(Math.random() * 121);
+                            const idleBounds = this.getHumanRouteBounds();
+                            this.idleTargetX = clamp(this.x + (-95 + Math.random() * 190), idleBounds.minX, idleBounds.maxX);
+                            this.idleTargetY = clamp(this.y + (-75 + Math.random() * 150), idleBounds.minY, idleBounds.maxY);
                         }
                         if (this.idleWalking && Math.hypot(this.x - this.idleTargetX, this.y - this.idleTargetY) > 8) {
-                            this.moveHumanLike(this.idleTargetX, this.idleTargetY, 0.68);
+                            this.moveAlongHumanRoute(this.idleTargetX, this.idleTargetY, "idle", false);
                         } else {
                             this.moving = false;
                         }
@@ -1325,17 +1351,58 @@
                 }
                 else if (this.state === "GO_TO_ZONE") {
                     if (!this.holdingBall) { this.state = "SEARCH_YELLOW"; return; }
-                    let tx = leftZone.x + leftZone.width / 2; let ty = leftZone.y + leftZone.height / 2;
-                    this.moveHumanLike(tx, ty);
+                    const target = this.deliveryTarget || { x: leftZone.x + leftZone.width / 2, y: leftZone.y + leftZone.height / 2 };
+                    this.moveAlongHumanRoute(target.x, target.y, "delivery", true);
                     
-                    if (Math.hypot(this.x - tx, this.y - ty) < 20) {
+                    if (Math.hypot(this.x - target.x, this.y - target.y) < 20) {
                         this.pauseBeforeAndAfter(() => {
+                            if (this.deliveryShouldMiss) {
+                                this.holdingBall.isHeld = false;
+                                this.holdingBall.x = this.x;
+                                this.holdingBall.y = this.y - 24;
+                                this.missedBall = this.holdingBall;
+                                this.holdingBall = null;
+                                this.deliveryShouldMiss = false;
+                                this.deliveryTarget = null;
+                                const bounds = this.getHumanRouteBounds();
+                                this.missedBallRetreatTarget = {
+                                    x: clamp(this.x + 46 + Math.random() * 20, bounds.minX, bounds.maxX),
+                                    y: clamp(this.y + (-22 + Math.random() * 44), bounds.minY, bounds.maxY)
+                                };
+                                this.clearHumanRoute();
+                                this.state = "STEP_AWAY_FROM_MISSED_DELIVERY";
+                                return;
+                            }
                             const idx = balls.indexOf(this.holdingBall);
                             if (idx > -1) balls.splice(idx, 1);
                             playerData.leftScore++;
                             this.holdingBall = null;
+                            this.deliveryTarget = null;
+                            this.clearHumanRoute();
                             this.state = "SEARCH_YELLOW";
                         });
+                    }
+                }
+                else if (this.state === "STEP_AWAY_FROM_MISSED_DELIVERY") {
+                    const target = this.missedBallRetreatTarget;
+                    if (!target) {
+                        this.state = "WAIT_BEFORE_RETRY_PICKUP";
+                        this.retryPickupNotBefore = Date.now() + 300;
+                        return;
+                    }
+                    this.moveAlongHumanRoute(target.x, target.y, "missed_delivery_retreat", false);
+                    if (Math.hypot(this.x - target.x, this.y - target.y) < 8) {
+                        this.clearHumanRoute();
+                        this.retryPickupNotBefore = Date.now() + 300;
+                        this.state = "WAIT_BEFORE_RETRY_PICKUP";
+                    }
+                }
+                else if (this.state === "WAIT_BEFORE_RETRY_PICKUP") {
+                    this.moving = false;
+                    if (Date.now() >= this.retryPickupNotBefore) {
+                        this.missedBall = null;
+                        this.missedBallRetreatTarget = null;
+                        this.state = "SEARCH_YELLOW";
                     }
                 }
 
@@ -1344,14 +1411,134 @@
                 if (this.y < topSectionHeight + this.radius) this.y = topSectionHeight + this.radius; if (this.y > canvas.height - this.radius) this.y = canvas.height - this.radius;
             }
 
-            moveHumanLike(tx, ty, speedScale = 1) {
-                moveOpponentOrthogonally(this, tx, ty, speedScale);
+            clearHumanRoute() {
+                this.routeWaypoints = [];
+                this.routeIndex = 0;
+                this.routeKey = null;
+                this.routeType = null;
+            }
+
+            getHumanRouteBounds() {
+                return {
+                    minX: this.radius,
+                    maxX: midX - this.radius,
+                    minY: topSectionHeight + this.radius,
+                    maxY: robotWorkBarrier.y - this.radius - 4
+                };
+            }
+
+            getMissedDeliveryTarget() {
+                const distance = 20 + Math.floor(Math.random() * 16);
+                const side = ["left", "bottom"][Math.floor(Math.random() * 2)];
+                if (side === "left") {
+                    return { x: leftZone.x - distance, y: leftZone.y + 12 + Math.random() * (leftZone.height - 24) };
+                }
+                return { x: leftZone.x + 12 + Math.random() * (leftZone.width - 24), y: leftZone.y + leftZone.height + distance };
+            }
+
+            delayNextPickup(minDelayMs, maxDelayMs) {
+                const delay = minDelayMs + Math.random() * (maxDelayMs - minDelayMs);
+                this.pickupDelayUntil = Math.max(this.pickupDelayUntil, Date.now() + delay);
+            }
+
+            buildHumanRoute(tx, ty, useVariant) {
+                const bounds = this.getHumanRouteBounds();
+                const target = { x: clamp(tx, bounds.minX, bounds.maxX), y: clamp(ty, bounds.minY, bounds.maxY) };
+                const start = { x: this.x, y: this.y };
+                const startAxis = Math.abs(target.x - start.x) >= Math.abs(target.y - start.y) ? "x" : "y";
+                const routeType = useVariant ? (Math.random() < 0.5 ? "corner_error" : "zigzag") : "direct";
+                const waypoints = [];
+
+                if (routeType === "corner_error") {
+                    const error = -50 + Math.floor(Math.random() * 101);
+                    if (startAxis === "x") {
+                        const turnX = clamp(target.x + error, bounds.minX, bounds.maxX);
+                        waypoints.push({ x: turnX, y: start.y }, { x: turnX, y: target.y }, target);
+                    } else {
+                        const turnY = clamp(target.y + error, bounds.minY, bounds.maxY);
+                        waypoints.push({ x: start.x, y: turnY }, { x: target.x, y: turnY }, target);
+                    }
+                } else if (routeType === "zigzag") {
+                    const turns = 4 + Math.floor(Math.random() * 5);
+                    const segments = turns + 1;
+                    const axes = Array.from({ length: segments }, (_, segment) =>
+                        segment % 2 === 0 ? startAxis : (startAxis === "x" ? "y" : "x")
+                    );
+                    const axisTotals = axes.reduce((totals, axis) => ({ ...totals, [axis]: totals[axis] + 1 }), { x: 0, y: 0 });
+                    const axisSteps = { x: 0, y: 0 };
+                    let current = { ...start };
+                    for (let segment = 0; segment < segments; segment++) {
+                        const axis = axes[segment];
+                        const next = { ...current };
+                        axisSteps[axis]++;
+                        const remainingSteps = axisTotals[axis] - axisSteps[axis];
+                        const distanceToTarget = target[axis] - current[axis];
+                        if (remainingSteps === 0 || Math.abs(distanceToTarget) < 1) {
+                            next[axis] = target[axis];
+                        } else {
+                            const direction = Math.sign(distanceToTarget);
+                            const minimumReservedDistance = remainingSteps * 6;
+                            const maxAdvance = Math.max(0, Math.abs(distanceToTarget) - minimumReservedDistance);
+                            const advance = Math.min(
+                                maxAdvance,
+                                Math.max(6, Math.abs(distanceToTarget) * (0.22 + Math.random() * 0.22))
+                            );
+                            next[axis] = current[axis] + direction * advance;
+                        }
+                        waypoints.push(next);
+                        current = next;
+                    }
+                } else if (startAxis === "x") {
+                    waypoints.push({ x: target.x, y: start.y }, target);
+                } else {
+                    waypoints.push({ x: start.x, y: target.y }, target);
+                }
+
+                return {
+                    type: routeType,
+                    waypoints: waypoints.filter((point, index, points) =>
+                        index === 0 || Math.abs(point.x - points[index - 1].x) > 1 || Math.abs(point.y - points[index - 1].y) > 1
+                    )
+                };
+            }
+
+            moveAlongHumanRoute(tx, ty, routeKey, useVariant, speedScale = 1) {
+                if (this.routeKey !== routeKey || this.routeIndex >= this.routeWaypoints.length) {
+                    const route = this.buildHumanRoute(tx, ty, useVariant);
+                    this.routeKey = routeKey;
+                    this.routeType = route.type;
+                    this.routeWaypoints = route.waypoints;
+                    this.routeIndex = 0;
+                }
+                const waypoint = this.routeWaypoints[this.routeIndex];
+                if (!waypoint) {
+                    this.moving = false;
+                    return;
+                }
+                const dx = waypoint.x - this.x;
+                const dy = waypoint.y - this.y;
+                const speed = LEFT_SCORE_BOT_SPEED * speedScale;
+                if (Math.abs(dx) <= speed && Math.abs(dy) <= speed) {
+                    this.x = waypoint.x;
+                    this.y = waypoint.y;
+                    this.routeIndex++;
+                    this.moving = false;
+                    return;
+                }
+                if (Math.abs(dx) > 0.5) {
+                    this.x += Math.sign(dx) * Math.min(speed, Math.abs(dx));
+                    this.facing = dx > 0 ? "right" : "left";
+                } else {
+                    this.y += Math.sign(dy) * Math.min(speed, Math.abs(dy));
+                }
+                this.walkPhase += WALK_PHASE_STEP;
+                this.moving = true;
             }
 
             pauseBeforeAndAfter(action) {
                 if (this.pendingAction || Date.now() < this.actionPauseUntil) return;
                 this.pendingAction = action;
-                this.actionPauseUntil = Date.now() + 1000;
+                this.actionPauseUntil = Date.now() + 200;
                 this.moving = false;
             }
 
@@ -1365,7 +1552,7 @@
         // ========================================================
         class LeftCarrierBot {
             constructor(x, y) {
-                this.x = x; this.y = y; this.radius = 15; this.color = getRobotAccent("other"); 
+                this.x = x; this.y = y; this.radius = 15; this.color = getTeamTheme("left").robotAccent; 
                 this.holdingBall = null; this.state = "SEARCH_PURPLE"; 
                 
                 this.delayTimer = 0;
@@ -1511,13 +1698,13 @@
             }
 
             draw() {
-                drawRobotIconAvatar(this, BLUE_ROBOT_DISPLAY_NAME, blueRobotIconImg, getRobotAccent("other"));
+                drawRobotIconAvatar(this, `${getTeamTheme("left").name}機器人`, blueRobotIconImg, getTeamTheme("left").robotAccent);
             }
         }
 
         class RightBlackCatBot {
             constructor(x, y) {
-                this.x = x; this.y = y; this.radius = 15; this.color = getRobotAccent("participant");
+                this.x = x; this.y = y; this.radius = 15; this.color = getTeamTheme("right").robotAccent;
                 this.holdingBall = null; this.state = "SEARCH_PURPLE";
                 this.escapeTargetX = x; this.escapeTargetY = y;
                 this.walkPhase = 0; this.moving = false;
@@ -1588,7 +1775,7 @@
                 this.y = clamp(this.y, getRobotWorkAreaTop(), canvas.height - 45);
             }
             draw() {
-                drawRobotIconAvatar(this, ORANGE_ROBOT_DISPLAY_NAME, orangeRobotIconImg, getRobotAccent("participant"));
+                drawRobotIconAvatar(this, `${getTeamTheme("right").name}機器人`, orangeRobotIconImg, getTeamTheme("right").robotAccent);
             }
         }
 
@@ -1773,6 +1960,8 @@
             practiceTargetCompleted = false;
             practiceOwnScorePromptShown = false;
             practiceOtherScorePromptShown = false;
+            practiceOwnScoreDialogPending = false;
+            practiceOtherScoreDialogPending = false;
             cat.holdingBall = null;
             cat.x = playerStart.x;
             cat.y = playerStart.y;
@@ -1861,7 +2050,7 @@
 
         function checkPracticeTarget() {
             if (currentStage !== 'PRACTICE' || practiceTargetCompleted) return;
-            if (playerData.rightScore >= PRACTICE_TARGET_SCORE && !roundTargetDialogPending) showPracticeCompleteDialog();
+            if (playerData.rightScore >= PRACTICE_TARGET_SCORE && !roundTargetDialogPending && !practiceOwnScoreDialogPending && !practiceOtherScoreDialogPending) showPracticeCompleteDialog();
         }
 
         function completePracticeTarget() {
@@ -1891,6 +2080,13 @@
             return ["say01", "say02", "say03"];
         }
 
+        function getRobotSpeechFile(speechId) {
+            const usesBlueVariant = participantTeamColor === "blue" && ["say01", "say04", "say05"].includes(speechId);
+            return usesBlueVariant
+                ? `robot_speech/${speechId}_blue.m4a`
+                : ROBOT_SPEECH_FILES[speechId];
+        }
+
         function startPracticeRoundAfterTutorial() {
             currentStage = 'PRACTICE';
             document.getElementById("practiceControlLayer").style.display = "none";
@@ -1908,15 +2104,25 @@
         }
 
         function showPracticeOwnScoreDialog() {
-            if (practiceOwnScorePromptShown) return;
-            practiceOwnScorePromptShown = true;
-            openRobotDialogSequence(["say04"], "practice_own_score", { allowedStages: ["PRACTICE"], log: false });
+            if (practiceOwnScorePromptShown || practiceOwnScoreDialogPending) return;
+            practiceOwnScoreDialogPending = true;
+            setTimeout(() => {
+                practiceOwnScoreDialogPending = false;
+                if (practiceOwnScorePromptShown || currentStage !== "PRACTICE") return;
+                practiceOwnScorePromptShown = true;
+                openRobotDialogSequence(["say04"], "practice_own_score", { allowedStages: ["PRACTICE"], log: false });
+            }, 1000);
         }
 
         function showPracticeOtherScoreDialog() {
-            if (practiceOtherScorePromptShown) return;
-            practiceOtherScorePromptShown = true;
-            openRobotDialogSequence(["say05"], "practice_other_score", { allowedStages: ["PRACTICE"], log: false });
+            if (practiceOtherScorePromptShown || practiceOtherScoreDialogPending) return;
+            practiceOtherScoreDialogPending = true;
+            setTimeout(() => {
+                practiceOtherScoreDialogPending = false;
+                if (practiceOtherScorePromptShown || currentStage !== "PRACTICE") return;
+                practiceOtherScorePromptShown = true;
+                openRobotDialogSequence(["say05"], "practice_other_score", { allowedStages: ["PRACTICE"], log: false });
+            }, 1000);
         }
 
         function showPracticeCompleteDialog() {
@@ -2014,6 +2220,7 @@
                     playerData.leftScore++;
                     if (currentRound === 2) donatedPotatoes++;
                     let idx = balls.indexOf(b); if (idx > -1) balls.splice(idx, 1);
+                    if (currentStage === 'GAMING' && leftScoreBot) leftScoreBot.delayNextPickup(1000, 2000);
                     sendActionPayloadToGoogleForm(`${finalActionType}_ScoreOtherTeamSuccess`);
                     if (currentStage === 'PRACTICE') showPracticeOtherScoreDialog();
                 } 
@@ -2178,7 +2385,7 @@
         }
 
         function drawKitchenOven(o) {
-            const bodyColor = o.side === "left" ? "#1E93D5" : "#e7a45f";
+            const bodyColor = getTeamTheme(o.side).ovenColor;
             fillRoundedRect(o.x - 6, o.y - 10, o.width + 12, o.height + 18, 8, "#5d4031");
             fillRoundedRect(o.x, o.y - 4, o.width, o.height + 8, 7, bodyColor);
             fillRoundedRect(o.x + 9, o.y + 10, o.width - 18, o.height - 8, 5, "#fff3d7");
@@ -2344,9 +2551,9 @@
             ctx.fillText("地瓜分配轉盤", midX, topSectionHeight + 52);
 
             drawQuantityWheel(midX - 230, topSectionHeight + 230, 105, opponentRotation,
-                allocationState.distribution.opponent, "另外一組", "#8fd3c4", phase);
+                allocationState.distribution.opponent, getTeamTheme("left").name, getTeamTheme("left").scoreAccent, phase);
             drawQuantityWheel(midX + 230, topSectionHeight + 230, 105, participantRotation,
-                allocationState.distribution.participant, "您", "#f2ad6f", phase);
+                allocationState.distribution.participant, getTeamTheme("right").name, getTeamTheme("right").scoreAccent, phase);
             ctx.restore();
         }
 
@@ -2383,10 +2590,10 @@
             drawKitchenFloor();
             drawRobotWorkBarrier();
             drawRawAreaWall();
-            drawServingZone(leftZone, "藍隊得分區", "#1789C7");
-            drawServingZone(rightZone, "橘隊得分區", "#ef9b51");
-            drawRawBasket(rawBaskets.left, "藍隊原料籃", getLeftRawCount(), "#1789C7");
-            drawRawBasket(rawBaskets.right, "橘隊原料籃", getRightRawCount(), "#d97a34");
+            drawServingZone(leftZone, `${getTeamTheme("left").name}得分區`, getTeamTheme("left").scoreAccent);
+            drawServingZone(rightZone, `${getTeamTheme("right").name}得分區`, getTeamTheme("right").scoreAccent);
+            drawRawBasket(rawBaskets.left, `${getTeamTheme("left").name}原料籃`, getLeftRawCount(), getTeamTheme("left").basketAccent);
+            drawRawBasket(rawBaskets.right, `${getTeamTheme("right").name}原料籃`, getRightRawCount(), getTeamTheme("right").basketAccent);
 
             ovens.forEach(o => {
                 drawKitchenOven(o);
@@ -2398,8 +2605,8 @@
             fillRoundedRect(20, topSectionHeight + 8, 250, 38, 8, opponentScoreFill);
             fillRoundedRect(canvas.width - 270, topSectionHeight + 8, 250, 38, 8, participantScoreFill);
             ctx.fillStyle = "#5b3a28"; ctx.font = "bold 18px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(`藍隊得分 ${playerData.leftScore} / ${displayTargetScore}`, 145, topSectionHeight + 34);
-            ctx.fillText(`橘隊得分 ${playerData.rightScore} / ${displayTargetScore}`, canvas.width - 145, topSectionHeight + 34);
+            ctx.fillText(`${getTeamTheme("left").name}得分 ${playerData.leftScore} / ${displayTargetScore}`, 145, topSectionHeight + 34);
+            ctx.fillText(`${getTeamTheme("right").name}得分 ${playerData.rightScore} / ${displayTargetScore}`, canvas.width - 145, topSectionHeight + 34);
 
             balls.forEach(ball => ball.draw());
             drawPracticeCue(timestamp);
@@ -2573,6 +2780,7 @@
             }
             document.getElementById("consentValidationMessage").innerText = "";
             participantId = inputId;
+            configureColorCounterbalance();
             if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {});
             }
@@ -2733,7 +2941,7 @@
             const primaryBtn = document.getElementById("helpOtherTeamBtn");
             const portrait = document.getElementById("robotDialogPortrait");
             const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
-            const speechFile = ROBOT_SPEECH_FILES[speechId];
+            const speechFile = getRobotSpeechFile(speechId);
             stopRobotSpeechAudio();
             robotDialogCanAdvance = false;
             portrait.src = robot.image;
