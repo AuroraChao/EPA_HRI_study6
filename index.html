@@ -185,6 +185,7 @@
             background: rgba(255, 255, 255, 0.12);
         }
         .gal-character img,
+        .gal-character video,
         .gal-character canvas {
             width: 100%; height: 100%; object-fit: cover; display: block;
         }
@@ -376,12 +377,12 @@
 
         <div id="robotDialogLayer">
             <div class="gal-character">
-                <img id="robotDialogPortrait" src="robot_more_direct_happy.gif" alt="橘隊機器人">
+                <img id="robotDialogPortrait" src="robot_more_direct_happy_notalk.gif" alt="機器人">
+                <video id="robotDialogVideo" playsinline preload="auto" style="display: none;"></video>
             </div>
             <div class="robot-speech-controls">
                 <button type="button" class="gal-choice primary" id="helpOtherTeamBtn">OK</button>
             </div>
-            <audio id="robotSpeechAudio" preload="auto"></audio>
         </div>
 
         <div id="gameOverOverlay">
@@ -456,17 +457,11 @@
         const CONDITION_ASSIGNMENT_MODE = "participantHash"; // 可改為 "random"
         const BLUE_PLAYER_DISPLAY_NAME = "5068";
         const ROBOT_CONDITIONS = [
-            { id: "more_direct_happy", label: "較多直視 / 開心", image: "robot_more_direct_happy.gif", noTalkImage: "robot_more_direct_happy_notalk.gif" },
-            { id: "less_direct_happy", label: "較少直視 / 開心", image: "robot_less_direct_happy.gif", noTalkImage: "robot_less_direct_happy_notalk.gif" },
-            { id: "more_direct_neutral", label: "較多直視 / 中性", image: "robot_more_direct_neutral.gif", noTalkImage: "robot_more_direct_neutral_notalk.gif" },
-            { id: "less_direct_neutral", label: "較少直視 / 中性", image: "robot_less_direct_neutral.gif", noTalkImage: "robot_less_direct_neutral_notalk.gif" }
+            { id: "more_direct_happy", label: "較多直視 / 開心", videoFolder: "best_happy", noTalkImage: "robot_more_direct_happy_notalk.gif" },
+            { id: "less_direct_happy", label: "較少直視 / 開心", videoFolder: "worst_happy", noTalkImage: "robot_less_direct_happy_notalk.gif" },
+            { id: "more_direct_neutral", label: "較多直視 / 中性", videoFolder: "best_neutral", noTalkImage: "robot_more_direct_neutral_notalk.gif" },
+            { id: "less_direct_neutral", label: "較少直視 / 中性", videoFolder: "worst_neutral", noTalkImage: "robot_less_direct_neutral_notalk.gif" }
         ];
-        const ROBOT_SPEECH_FILES = Object.fromEntries(
-            Array.from({ length: 9 }, (_, index) => {
-                const speechId = `say${String(index + 1).padStart(2, "0")}`;
-                return [speechId, `robot_speech/${speechId}.m4a`];
-            })
-        );
         const ROUND_DISTRIBUTIONS = {
             1: { id: "round_1", opponent: 12, participant: 46 },
             2: { id: "round_2", opponent: 10, participant: 38 },
@@ -550,12 +545,6 @@
         const FRAME_INTERVAL_MS = 1000 / MAX_RENDER_FPS;
         const EXIT_FULLSCREEN_PASSWORD = "prosocial2026";
         const STAGE_SKIP_PASSWORD = "prosocialaurora";
-        const ROBOT_TALKING_GIF_DURATION_MS = {
-            more_direct_happy: 4450,
-            more_direct_neutral: 4450,
-            less_direct_happy: 7650,
-            less_direct_neutral: 7650
-        };
         
         let currentStage = 'INTRO'; 
         let currentRound = 1;
@@ -596,7 +585,7 @@
         let robotDialogButtonDelayMs = ROBOT_DIALOG_BUTTON_DELAY_MS;
         let robotDialogLogEnabled = true;
         let robotDialogOnComplete = null;
-        let robotSpeechAudio = null;
+        let robotDialogVideo = null;
         let round2OpponentScoredOutAt = null;
         let round2ScarcityDialogShown = false;
         let donatedPotatoes = 0;
@@ -671,7 +660,7 @@
         imgYellow.src = "cooked_ball.png"; 
 
         const centerRobotImg = new Image();
-        centerRobotImg.src = ROBOT_CONDITIONS[0].image;
+        centerRobotImg.src = ROBOT_CONDITIONS[0].noTalkImage;
 
         const participantWalkImg = new Image();
         participantWalkImg.src = "orange1_sprite.svg";
@@ -1933,9 +1922,9 @@
                 robot,
                 distributionMode: "fixed_by_round"
             };
-            centerRobotImg.src = robot.image;
+            centerRobotImg.src = robot.noTalkImage;
             const introRobot = document.getElementById("introRobotAvatar");
-            if (introRobot) introRobot.src = robot.image;
+            if (introRobot) introRobot.src = robot.noTalkImage;
             playerData.condition = experimentCondition.id;
             return experimentCondition;
         }
@@ -1955,7 +1944,7 @@
             roundEndReason = "timeout";
             clearInterval(robotDialogTypeTimer);
             clearTimeout(robotDialogButtonTimer);
-            stopRobotSpeechAudio();
+            stopRobotDialogVideo();
             robotDialogContext = null;
             robotDialogMessages = [];
             robotDialogMessageIndex = 0;
@@ -2170,11 +2159,11 @@
             return ["say01", "say02", "say03"];
         }
 
-        function getRobotSpeechFile(speechId) {
-            const usesBlueVariant = participantTeamColor === "blue" && ["say01", "say04", "say05"].includes(speechId);
-            return usesBlueVariant
-                ? `robot_speech/${speechId}_blue.m4a`
-                : ROBOT_SPEECH_FILES[speechId];
+        function getRobotDialogVideoFile(speechId) {
+            const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
+            const hasTeamVariant = ["say01", "say04", "say05"].includes(speechId);
+            const teamSuffix = hasTeamVariant ? `_${participantTeamColor}` : "";
+            return `${robot.videoFolder}/${robot.videoFolder}_${speechId}${teamSuffix}.mp4`;
         }
 
         function startPracticeRoundAfterTutorial() {
@@ -2813,7 +2802,7 @@
             hideIdleReminder();
             clearInterval(robotDialogTypeTimer);
             clearTimeout(robotDialogButtonTimer);
-            stopRobotSpeechAudio();
+            stopRobotDialogVideo();
             document.getElementById("robotDialogLayer").style.display = "none";
             roundTargetDialogPending = false;
             robotDialogContext = null;
@@ -2990,7 +2979,7 @@
             layer.style.display = "block";
             primaryBtn.innerText = "OK";
             primaryBtn.dataset.action = "ok";
-            playRobotSpeech(robotDialogMessages[0]);
+            playRobotDialogVideo(robotDialogMessages[0]);
             return true;
         }
 
@@ -3003,50 +2992,50 @@
             if (opened) round2ScarcityDialogShown = true;
         }
 
-        function stopRobotSpeechAudio() {
-            if (!robotSpeechAudio) return;
-            robotSpeechAudio.pause();
-            robotSpeechAudio.onended = null;
-            robotSpeechAudio.onerror = null;
+        function stopRobotDialogVideo() {
+            if (!robotDialogVideo) return;
+            robotDialogVideo.pause();
+            robotDialogVideo.onended = null;
+            robotDialogVideo.onerror = null;
         }
 
-        function finishRobotSpeech(speechId) {
+        function finishRobotDialogVideo(speechId) {
             const primaryBtn = document.getElementById("helpOtherTeamBtn");
             const portrait = document.getElementById("robotDialogPortrait");
+            const video = document.getElementById("robotDialogVideo");
             const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
             if (robotDialogMessages[robotDialogMessageIndex] !== speechId) return;
             robotDialogCanAdvance = false;
+            video.pause();
+            video.style.display = "none";
             portrait.src = robot.noTalkImage;
+            portrait.style.display = "block";
             primaryBtn.disabled = false;
             primaryBtn.style.visibility = "visible";
             robotDialogCanAdvance = true;
         }
 
-        function playRobotSpeech(speechId) {
+        function playRobotDialogVideo(speechId) {
             const primaryBtn = document.getElementById("helpOtherTeamBtn");
             const portrait = document.getElementById("robotDialogPortrait");
-            const robot = experimentCondition ? experimentCondition.robot : ROBOT_CONDITIONS[0];
-            const speechFile = getRobotSpeechFile(speechId);
-            stopRobotSpeechAudio();
+            const videoFile = getRobotDialogVideoFile(speechId);
+            stopRobotDialogVideo();
             robotDialogCanAdvance = false;
-            portrait.src = robot.image;
+            portrait.style.display = "none";
             primaryBtn.disabled = true;
             primaryBtn.style.visibility = "hidden";
-            if (!speechFile) {
-                finishRobotSpeech(speechId);
-                return;
-            }
-            robotSpeechAudio = document.getElementById("robotSpeechAudio");
-            robotSpeechAudio.src = speechFile;
-            robotSpeechAudio.currentTime = 0;
-            robotSpeechAudio.onended = () => finishRobotSpeech(speechId);
-            robotSpeechAudio.onerror = () => finishRobotSpeech(speechId);
-            robotSpeechAudio.play().catch(() => finishRobotSpeech(speechId));
+            robotDialogVideo = document.getElementById("robotDialogVideo");
+            robotDialogVideo.style.display = "block";
+            robotDialogVideo.src = videoFile;
+            robotDialogVideo.currentTime = 0;
+            robotDialogVideo.onended = () => finishRobotDialogVideo(speechId);
+            robotDialogVideo.onerror = () => finishRobotDialogVideo(speechId);
+            robotDialogVideo.play().catch(() => finishRobotDialogVideo(speechId));
         }
 
         function resolveSecondRoundHelpDialog(decision) {
             if (!robotDialogCanAdvance) return;
-            stopRobotSpeechAudio();
+            stopRobotDialogVideo();
             const isFinalDialogStep = robotDialogMessageIndex === robotDialogMessages.length - 1;
             if (isFinalDialogStep && robotDialogContext === "target") getTen = 1;
             if (isFinalDialogStep && robotDialogContext === "round2_scarcity") promoteHelp = 1;
@@ -3056,7 +3045,7 @@
 
             if (robotDialogMessageIndex < robotDialogMessages.length - 1) {
                 robotDialogMessageIndex++;
-                playRobotSpeech(robotDialogMessages[robotDialogMessageIndex]);
+                playRobotDialogVideo(robotDialogMessages[robotDialogMessageIndex]);
                 return;
             }
 
