@@ -463,25 +463,26 @@
             { id: "less_direct_neutral", label: "較少直視 / 中性", videoFolder: "worst_neutral", noTalkImage: "robot_less_direct_neutral_notalk.gif" }
         ];
         const ROUND_DISTRIBUTIONS = {
-            1: { id: "round_1", opponent: 12, participant: 46 },
-            2: { id: "round_2", opponent: 10, participant: 38 },
-            3: { id: "round_3", opponent: 10, participant: 42 }
+            1: { id: "round_1", opponent: 12, participant: 38 },
+            2: { id: "round_2", opponent: 14, participant: 32 },
+            3: { id: "round_3", opponent: 14, participant: 28 }
         };
         const WHEEL_VALUES = [10, 12, 14, 18, 22, 24, 28, 32, 36, 38, 42, 46];
         const LIKERT_AGREE = { minLabel: "1\n非常不同意", maxLabel: "5\n非常同意" };
         const LIKERT_NOTICE = { minLabel: "1\n完全沒注意", maxLabel: "5\n完全有注意" };
         const FINAL_SURVEY_QUESTIONS = [
+            { id: "sharing_reason", type: "text", text: "請問您於遊戲中有分享地瓜給另一隊的玩家嗎？若有，請問您分享地瓜的原因與目的為何？若無，請填「無」。" },
             { id: "flow_1", type: "likert", scale: LIKERT_AGREE, text: "整體實驗流程進行得很順暢，沒有明顯的中斷或卡頓。" },
             { id: "flow_2", type: "likert", scale: LIKERT_AGREE, text: "實驗各個環節之間的銜接是自然的。" },
             { id: "flow_3", type: "likert", scale: LIKERT_AGREE, text: "實驗過程中，我清楚知道自己目前進行到哪個階段。" },
             { id: "flow_4", type: "likert", scale: LIKERT_AGREE, text: "實驗所需的時間長度是合理的。" },
             { id: "flow_5_reverse", type: "likert", scale: LIKERT_AGREE, text: "我在操作介面或設備上遭遇了技術性困難。" },
             { id: "flow_6", type: "text", required: false, text: "實驗流程中，是否有感到困惑或不順暢之處？如有，請描述。" },
-            { id: "flow_7", type: "text", required: false, text: "您認為本實驗的研究目的為何？" },
+            { id: "flow_7", type: "text", text: "您認為本實驗的研究目的為何？" },
             { id: "emotion_1", type: "likert", scale: LIKERT_AGREE, text: "與機器人互動時，我感受到它傳遞出明確的情緒。" },
             { id: "emotion_2", type: "likert", scale: LIKERT_AGREE, dynamicText: true },
             { id: "emotion_3", type: "likert", scale: LIKERT_AGREE, text: "機器人的回應方式讓我產生了相對應的情緒感受。" },
-            { id: "emotion_4", type: "text", required: false, text: "我認為機器人整體上呈現的是______情緒。" },
+            { id: "emotion_4", type: "text", text: "我認為機器人整體上呈現的是______情緒。" },
             { id: "emotion_5_reverse", type: "likert", scale: LIKERT_AGREE, text: "與機器人合作過程中，我幾乎感受不到任何情緒氛圍。" },
             { id: "instruction_1", type: "likert", scale: LIKERT_AGREE, text: "實驗開始前的指導語，讓我清楚了解這個實驗進行的方式。" },
             { id: "instruction_2", type: "likert", scale: LIKERT_AGREE, text: "指導語說明了我在實驗中需要做什麼。" },
@@ -515,11 +516,18 @@
             { id: "robot_emotion_category", type: "choice", text: "你覺得這個機器人展現了哪種情緒？", options: ["無情緒", "開心", "生氣", "厭惡", "悲傷", "恐懼", "驚訝"] },
             { id: "robot_emotion_intensity", type: "range", text: "你覺得這個機器人的情緒強度為何？", min: 0, max: 100, minLabel: "0 表示完全不強烈", maxLabel: "100 表示非常強烈" }
         ];
+        const OPPONENT_IDENTITY_QUESTIONS = [1, 2, 3].map(round => ({
+            id: `opponent_identity_round_${round}`,
+            type: "choice",
+            text: `請問您於第${round}回合認為另一隊的玩家為真人還是電腦？`,
+            options: ["真人", "電腦"]
+        }));
         const SURVEY_PAGES = [
             { prompt: "請根據您此刻的感受，選擇最符合的程度。", questions: AFFECT_QUESTIONS },
             { prompt: "請評價剛才遊戲中與您同一隊的機器人帶給您的感受。", questions: GODSPEED_QUESTIONS },
             { prompt: "請依您對剛才機器人的感受作答。", questions: ROBOT_EMOTION_CHECK_QUESTIONS },
-            { prompt: "", questions: FINAL_SURVEY_QUESTIONS }
+            { prompt: "", questions: FINAL_SURVEY_QUESTIONS },
+            { prompt: "請依您在各回合中的觀察作答。", questions: OPPONENT_IDENTITY_QUESTIONS }
         ];
         const surveyQuestions = SURVEY_PAGES.flatMap(page => page.questions);
 
@@ -533,7 +541,7 @@
         const PRACTICE_RAW_COUNT = 18;
         const OVEN_CAPACITY = 4;
         const COOK_DURATION_MS = 5000;
-        const CAT_SPEED = 3.1;
+        const CAT_SPEED = 3.3;
         const BOT_SPEED = 2.8;
         const LEFT_SCORE_BOT_SPEED = 3.1;
         const WALK_PHASE_STEP = 0.22;
@@ -588,6 +596,8 @@
         let robotDialogVideo = null;
         let round2OpponentScoredOutAt = null;
         let round2ScarcityDialogShown = false;
+        let opponentPauseUntil = 0;
+        let opponentScorePauseTriggered = false;
         let donatedPotatoes = 0;
         let lastParticipantActivityAt = Date.now();
         let idleReminderVisible = false;
@@ -1953,6 +1963,8 @@
             robotDialogOnComplete = null;
             round2OpponentScoredOutAt = null;
             round2ScarcityDialogShown = false;
+            opponentPauseUntil = 0;
+            opponentScorePauseTriggered = false;
             getTen = 0;
             promoteHelp = 0;
             donatedPotatoes = 0;
@@ -2690,8 +2702,16 @@
             balls.forEach(ball => ball.draw());
             drawPracticeCue(timestamp);
             
-            bots.forEach(bot => bot.update()); 
-            if (blackCatBot) blackCatBot.update();
+            const opponentPaused = currentStage === "GAMING" && Date.now() < opponentPauseUntil;
+            const teammateRobotPaused = roundTargetDialogPending;
+            bots.forEach(bot => {
+                if (opponentPaused && bot instanceof LeftCarrierBot) bot.moving = false;
+                else bot.update();
+            });
+            if (blackCatBot) {
+                if (teammateRobotPaused) blackCatBot.moving = false;
+                else blackCatBot.update();
+            }
             
             bots.forEach(bot => bot.draw());
             if (blackCatBot) blackCatBot.draw(); 
@@ -2724,6 +2744,12 @@
             }
         }
 
+        function checkOpponentScorePause() {
+            if (currentStage !== "GAMING" || opponentScorePauseTriggered || playerData.leftScore < ROUND_TARGET_SCORE) return;
+            opponentScorePauseTriggered = true;
+            opponentPauseUntil = Date.now() + 15000;
+        }
+
         function checkRound2OpponentScarcity() {
             if (currentStage !== 'GAMING' || currentRound !== 2 || round2ScarcityDialogShown) return;
             const opponentHasUndeliveredPotato = balls.some(ball => ball.originSide === "left");
@@ -2747,6 +2773,7 @@
                 updateOvens(); // 每幀動態更新全域烤箱計時狀態
                 checkRound2OpponentScarcity();
                 checkRoundTarget();
+                checkOpponentScorePause();
                 checkParticipantInactivity();
             } else if (currentStage === 'PRACTICE') {
                 cat.update();
