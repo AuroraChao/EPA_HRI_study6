@@ -457,10 +457,10 @@
         const CONDITION_ASSIGNMENT_MODE = "participantHash"; // 可改為 "random"
         const BLUE_PLAYER_DISPLAY_NAME = "5068";
         const ROBOT_CONDITIONS = [
-            { id: "more_direct_happy", label: "較多直視 / 開心", videoFolder: "best_happy", noTalkImage: "robot_more_direct_happy_notalk.gif" },
-            { id: "less_direct_happy", label: "較少直視 / 開心", videoFolder: "worst_happy", noTalkImage: "robot_less_direct_happy_notalk.gif" },
-            { id: "more_direct_neutral", label: "較多直視 / 中性", videoFolder: "best_neutral", noTalkImage: "robot_more_direct_neutral_notalk.gif" },
-            { id: "less_direct_neutral", label: "較少直視 / 中性", videoFolder: "worst_neutral", noTalkImage: "robot_less_direct_neutral_notalk.gif" }
+            { id: "more_direct_happy", label: "較多直視 / 開心", videoFolder: "best_happy", blinkOnlyImage: "direct_happy_robot.gif", noTalkImage: "robot_more_direct_happy_notalk.gif" },
+            { id: "less_direct_happy", label: "較少直視 / 開心", videoFolder: "worst_happy", blinkOnlyImage: "direct_happy_robot.gif", noTalkImage: "robot_less_direct_happy_notalk.gif" },
+            { id: "more_direct_neutral", label: "較多直視 / 中性", videoFolder: "best_neutral", blinkOnlyImage: "direct_neutral_robot.gif", noTalkImage: "robot_more_direct_neutral_notalk.gif" },
+            { id: "less_direct_neutral", label: "較少直視 / 中性", videoFolder: "worst_neutral", blinkOnlyImage: "direct_neutral_robot.gif", noTalkImage: "robot_less_direct_neutral_notalk.gif" }
         ];
         const ROUND_DISTRIBUTIONS = {
             1: { id: "round_1", opponent: 12, participant: 38 },
@@ -3035,7 +3035,7 @@
             robotDialogCanAdvance = false;
             video.pause();
             video.style.display = "none";
-            portrait.src = robot.noTalkImage;
+            portrait.src = robot.blinkOnlyImage;
             portrait.style.display = "block";
             primaryBtn.disabled = false;
             primaryBtn.style.visibility = "visible";
